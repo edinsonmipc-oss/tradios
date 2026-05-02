@@ -60,39 +60,29 @@ export default function GalleryPage() {
       return
     }
 
-    const fileExt = uploadFile.name.split('.').pop()
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`
+    // Convert image to base64 and save directly in DB (no storage needed)
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const base64 = reader.result as string
 
-    const { error: uploadError } = await supabase.storage
-      .from('gallery')
-      .upload(fileName, uploadFile)
+      const { error: dbError } = await supabase.from('gallery').insert({
+        user_id: user.id,
+        url: base64,
+        description: uploadForm.description.trim() || null,
+      })
 
-    if (uploadError) {
-      toast.error(uploadError.message)
       setUploading(false)
-      return
+      if (dbError) {
+        toast.error(dbError.message)
+      } else {
+        toast.success('Image uploaded!')
+        setShowUpload(false)
+        setUploadFile(null)
+        setUploadForm({ description: '' })
+        fetchImages()
+      }
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(fileName)
-
-    const { error: dbError } = await supabase.from('gallery').insert({
-      user_id: user.id,
-      url: publicUrl,
-      description: uploadForm.description.trim() || null,
-    })
-
-    setUploading(false)
-    if (dbError) {
-      toast.error(dbError.message)
-    } else {
-      toast.success('Image uploaded!')
-      setShowUpload(false)
-      setUploadFile(null)
-      setUploadForm({ description: '' })
-      fetchImages()
-    }
+    reader.readAsDataURL(uploadFile)
   }
 
   const handleDelete = async (id: string, url: string) => {

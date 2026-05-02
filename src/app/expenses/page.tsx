@@ -133,22 +133,18 @@ function AddExpenseModal({
     // Upload receipt image if selected
     let receiptUrl: string | null = null
     if (receiptFile) {
-      const fileExt = receiptFile.name.split('.').pop()
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('receipts')
-        .upload(fileName, receiptFile)
-
-      if (uploadError) {
-        toast.error('Failed to upload receipt: ' + uploadError.message)
+      try {
+        receiptUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = () => reject(new Error('Failed to read file'))
+          reader.readAsDataURL(receiptFile)
+        })
+      } catch (err: any) {
+        toast.error('Failed to read receipt: ' + err.message)
         setLoading(false)
         return
       }
-
-      const { data: urlData } = supabase.storage
-        .from('receipts')
-        .getPublicUrl(fileName)
-      receiptUrl = urlData?.publicUrl || null
     }
 
     const { error } = await supabase.from('expenses').insert({
