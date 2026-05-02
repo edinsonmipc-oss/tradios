@@ -39,37 +39,75 @@ export default function LoginPage() {
     if (!email.trim() || !password) return
     setLoading(true)
 
-    // Try sign in first
-    let { error } = await supabase.auth.signInWithPassword({
-      email: email.trim(),
-      password,
-    })
-
-    // If user doesn't exist, sign up (autoconfirm is on)
-    if (error?.message?.includes('Invalid login credentials')) {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-      })
-      error = signUpError
-      if (!signUpError) {
-        // Sign up succeeded (autoconfirm), now log in
-        await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        })
+    // Call Supabase auth API directly
+    const res = await fetch(
+      'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/token?grant_type=password',
+      {
+        method: 'POST',
+        headers: {
+          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZ3Jzb2JueHB1bXp5YWJvbWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDM1MjUsImV4cCI6MjA5MTY3OTUyNX0.d28yAWJpPxRU2i2yLQZjsseXv6AWBqKHmoDeRv_NWP8',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim(), password }),
       }
-    }
+    )
+    const data = await res.json()
 
     setLoading(false)
-    if (error) {
-      toast.error(error.message)
-    } else {
-      toast.success('Welcome to Tradios!')
-      router.push('/dashboard')
-      router.refresh()
+
+    if (data.error) {
+      // If invalid credentials, try sign up
+      if (data.error_description?.includes('Invalid login') || data.msg?.includes('Invalid')) {
+        const signupRes = await fetch(
+          'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/signup',
+          {
+            method: 'POST',
+            headers: {
+              apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZ3Jzb2JueHB1bXp5YWJvbWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDM1MjUsImV4cCI6MjA5MTY3OTUyNX0.d28yAWJpPxRU2i2yLQZjsseXv6AWBqKHmoDeRv_NWP8',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email.trim(), password }),
+          }
+        )
+        const signupData = await signupRes.json()
+        if (signupData.error) {
+          toast.error(signupData.error_description || signupData.msg || 'Sign up failed')
+          return
+        }
+        // Now login with the new account
+        const loginRes = await fetch(
+          'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/token?grant_type=password',
+          {
+            method: 'POST',
+            headers: {
+              apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZ3Jzb2JueHB1bXp5YWJvbWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDM1MjUsImV4cCI6MjA5MTY3OTUyNX0.d28yAWJpPxRU2i2yLQZjsseXv6AWBqKHmoDeRv_NWP8',
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email: email.trim(), password }),
+          }
+        )
+        const loginData = await loginRes.json()
+        if (loginData.access_token) {
+          setSessionCookies(loginData)
+          window.location.href = '/dashboard'
+        } else {
+          toast.error('Login failed after sign up')
+        }
+        return
+      }
+      toast.error(data.error_description || data.msg || 'Login failed')
+      return
     }
+
+    // Success - set cookies manually and redirect
+    setSessionCookies(data)
+    window.location.href = '/dashboard'
+  }
+
+  function setSessionCookies(data: any) {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : ''
+    const cookieBase = `path=/; max-age=3600; SameSite=Lax${secure}`
+    document.cookie = `sb-mpgrsobnxpumzyabomaz-auth-token=${JSON.stringify({access_token: data.access_token, refresh_token: data.refresh_token, user: data.user})}; ${cookieBase}`
   }
 
   const handleMagicLink = async (e: React.FormEvent) => {
