@@ -56,25 +56,17 @@ export default function LoginPage() {
     setLoading(false)
 
     if (data.error) {
-      // If invalid credentials, try sign up
       if (data.error_description?.includes('Invalid login') || data.msg?.includes('Invalid')) {
-        const signupRes = await fetch(
-          'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/signup',
-          {
-            method: 'POST',
-            headers: {
-              apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZ3Jzb2JueHB1bXp5YWJvbWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDM1MjUsImV4cCI6MjA5MTY3OTUyNX0.d28yAWJpPxRU2i2yLQZjsseXv6AWBqKHmoDeRv_NWP8',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: email.trim(), password }),
-          }
-        )
-        const signupData = await signupRes.json()
-        if (signupData.error) {
-          toast.error(signupData.error_description || signupData.msg || 'Sign up failed')
+        // Try sign up
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+        })
+        if (signUpError) {
+          toast.error(signUpError.message)
           return
         }
-        // Now login with the new account
+        // Sign up worked, now set session manually
         const loginRes = await fetch(
           'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/token?grant_type=password',
           {
@@ -88,7 +80,10 @@ export default function LoginPage() {
         )
         const loginData = await loginRes.json()
         if (loginData.access_token) {
-          setSessionCookies(loginData)
+          await supabase.auth.setSession({
+            access_token: loginData.access_token,
+            refresh_token: loginData.refresh_token,
+          })
           window.location.href = '/dashboard'
         } else {
           toast.error('Login failed after sign up')
@@ -99,15 +94,12 @@ export default function LoginPage() {
       return
     }
 
-    // Success - set cookies manually and redirect
-    setSessionCookies(data)
+    // Success - set session via supabase client (handles cookies properly)
+    await supabase.auth.setSession({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token,
+    })
     window.location.href = '/dashboard'
-  }
-
-  function setSessionCookies(data: any) {
-    const secure = window.location.protocol === 'https:' ? '; Secure' : ''
-    const cookieBase = `path=/; max-age=3600; SameSite=Lax${secure}`
-    document.cookie = `sb-mpgrsobnxpumzyabomaz-auth-token=${JSON.stringify({access_token: data.access_token, refresh_token: data.refresh_token, user: data.user})}; ${cookieBase}`
   }
 
   const handleMagicLink = async (e: React.FormEvent) => {
