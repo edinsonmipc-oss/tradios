@@ -1,0 +1,271 @@
+import { createServerSupabaseClient } from '@/lib/supabase/server'
+import { notFound } from 'next/navigation'
+import { Badge, statusBadgeVariant } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import {
+  Phone,
+  Mail,
+  MapPin,
+  FileText,
+  Calendar,
+  MessageSquare,
+  Plus,
+  ArrowLeft,
+  Info,
+  Globe,
+  Camera,
+  ExternalLink,
+} from 'lucide-react'
+import { formatDate, formatCurrency } from '@/lib/utils'
+
+interface PageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function ClientDetailPage({ params }: PageProps) {
+  const { id } = await params
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: client } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (!client) notFound()
+
+  const { data: quotes } = await supabase
+    .from('quotes')
+    .select('*')
+    .eq('client_id', id)
+    .order('created_at', { ascending: false })
+
+  const { data: visits } = await supabase
+    .from('visits')
+    .select('*')
+    .eq('client_id', id)
+    .order('scheduled_date', { ascending: false })
+
+  const { data: messages } = await supabase
+    .from('messages')
+    .select('*')
+    .eq('client_id', id)
+    .order('created_at', { ascending: false })
+    .limit(10)
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link href="/clients">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-foreground">{client.name}</h1>
+            <Badge variant={statusBadgeVariant(client.status)}>{client.status}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted">Client since {formatDate(client.created_at)}</p>
+        </div>
+        <div className="ml-auto flex gap-2">
+          <Link href={`/quotes/new?client=${client.id}`}>
+            <Button variant="primary" size="sm">
+              <Plus className="h-4 w-4" /> New Quote
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Info Panel */}
+        <div className="rounded-xl border border-border bg-card p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Info className="h-5 w-5 text-primary" />
+            <h2 className="text-base font-semibold text-foreground">Contact Info</h2>
+          </div>
+          <div className="space-y-3">
+            {client.phone && (
+              <div className="flex items-center gap-2 text-sm text-muted">
+                <Phone className="h-4 w-4 text-primary/70" />
+                <span>{client.phone}</span>
+              </div>
+            )}
+            {client.email && (
+              <div className="flex items-center gap-2 text-sm text-muted">
+                <Mail className="h-4 w-4 text-primary/70" />
+                <span>{client.email}</span>
+              </div>
+            )}
+            {client.address && (
+              <div className="flex items-start gap-2 text-sm text-muted">
+                <MapPin className="mt-0.5 h-4 w-4 text-primary/70" />
+                <span>{client.address}</span>
+              </div>
+            )}
+            {client.source && (
+              <p className="text-sm text-muted">
+                <span className="text-foreground">Source:</span> {client.source}
+              </p>
+            )}
+            {/* Social Links */}
+            <div className="mt-3 space-y-2 border-t border-border pt-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Online</h3>
+              {client.website && (
+                <a
+                  href={client.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-primary hover:text-primary-dark transition-colors"
+                >
+                  <Globe className="h-4 w-4" />
+                  <span className="truncate">{client.website.replace(/^https?:\/\//, '')}</span>
+                </a>
+              )}
+              {client.instagram && (
+                <a
+                  href={client.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-pink-400 hover:text-pink-300 transition-colors"
+                >
+                  <Camera className="h-4 w-4" />
+                  <span className="truncate">@{client.instagram.split('/').pop()}</span>
+                </a>
+              )}
+              {client.facebook && (
+                <a
+                  href={client.facebook}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span className="truncate">{client.facebook.split('/').pop() || 'Facebook'}</span>
+                </a>
+              )}
+              {!client.website && !client.instagram && !client.facebook && (
+                <p className="text-xs text-muted">No online profiles added</p>
+              )}
+            </div>
+          </div>
+          {client.notes && (
+            <div className="mt-4 border-t border-border pt-4">
+              <h3 className="mb-2 text-sm font-medium text-foreground">Notes</h3>
+              <p className="text-sm text-muted whitespace-pre-wrap">{client.notes}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Quotes Tab */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quotes */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-5 w-5 text-primary" />
+                <h2 className="text-base font-semibold text-foreground">Quotes</h2>
+              </div>
+              <Link href={`/quotes/new?client=${client.id}`}>
+                <Button variant="ghost" size="sm">
+                  <Plus className="h-4 w-4" /> New
+                </Button>
+              </Link>
+            </div>
+            {quotes && quotes.length > 0 ? (
+              <div className="space-y-2">
+                {quotes.map((quote) => (
+                  <Link
+                    key={quote.id}
+                    href={`/quotes/${quote.id}`}
+                    className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-card-hover"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {quote.quote_number} — {quote.title || 'Untitled'}
+                      </p>
+                      <p className="text-xs text-muted">{formatDate(quote.created_at)}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-semibold text-foreground">
+                        {formatCurrency(quote.total)}
+                      </span>
+                      <Badge variant={statusBadgeVariant(quote.status)}>
+                        {quote.status}
+                      </Badge>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted">No quotes yet</p>
+            )}
+          </div>
+
+          {/* Visits */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Visits</h2>
+            </div>
+            {visits && visits.length > 0 ? (
+              <div className="space-y-2">
+                {visits.map((visit) => (
+                  <Link
+                    key={visit.id}
+                    href={`/visits/${visit.id}`}
+                    className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-card-hover"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{visit.title || 'Visit'}</p>
+                      <p className="text-xs text-muted">
+                        {visit.scheduled_date ? formatDate(visit.scheduled_date) : 'No date'}
+                        {visit.address ? ` • ${visit.address}` : ''}
+                      </p>
+                    </div>
+                    <Badge variant={statusBadgeVariant(visit.status)}>{visit.status}</Badge>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted">No visits yet</p>
+            )}
+          </div>
+
+          {/* Messages */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Recent Messages</h2>
+            </div>
+            {messages && messages.length > 0 ? (
+              <div className="space-y-3">
+                {messages.map((msg) => (
+                  <div
+                    key={msg.id}
+                    className="rounded-lg border border-border p-3"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-foreground">
+                        {msg.channel || 'message'}
+                      </span>
+                      <span className="text-xs text-muted">{formatDate(msg.created_at)}</span>
+                    </div>
+                    <p className="text-sm text-muted">{msg.content}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="py-6 text-center text-sm text-muted">No messages yet</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
