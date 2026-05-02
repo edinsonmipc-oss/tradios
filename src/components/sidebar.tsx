@@ -15,6 +15,7 @@ import {
   X,
   Receipt,
   TrendingUp,
+  Shield,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -27,6 +28,7 @@ const navItems = [
   { href: '/visits', label: 'Visits', icon: Calendar },
   { href: '/expenses', label: 'Expenses', icon: Receipt },
   { href: '/accounting', label: 'Accounting', icon: TrendingUp },
+  { href: '/insurance', label: 'Insurance', icon: Shield },
   { href: '/gallery', label: 'Gallery', icon: Image },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
