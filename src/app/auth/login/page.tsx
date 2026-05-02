@@ -39,67 +39,53 @@ export default function LoginPage() {
     if (!email.trim() || !password) return
     setLoading(true)
 
-    // Call Supabase auth API directly
-    const res = await fetch(
-      'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/token?grant_type=password',
-      {
-        method: 'POST',
-        headers: {
-          apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZ3Jzb2JueHB1bXp5YWJvbWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDM1MjUsImV4cCI6MjA5MTY3OTUyNX0.d28yAWJpPxRU2i2yLQZjsseXv6AWBqKHmoDeRv_NWP8',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim(), password }),
-      }
-    )
-    const data = await res.json()
+    try {
+      // Use Supabase client directly — handles cookies properly via @supabase/ssr
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      })
 
-    setLoading(false)
-
-    if (data.error) {
-      if (data.error_description?.includes('Invalid login') || data.msg?.includes('Invalid')) {
-        // Try sign up
-        const { error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-        })
-        if (signUpError) {
-          toast.error(signUpError.message)
+      if (error) {
+        // If user doesn't exist, try sign up
+        if (error.message?.toLowerCase().includes('invalid login') ||
+            error.message?.toLowerCase().includes('invalid credentials')) {
+          const { error: signUpError } = await supabase.auth.signUp({
+            email: email.trim(),
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/auth/callback`,
+            },
+          })
+          if (signUpError) {
+            toast.error(signUpError.message)
+            setLoading(false)
+            return
+          }
+          // Sign up succeeded — now sign in (cookies are set by signInWithPassword)
+          toast.success('Account created! Signing you in...')
+          const { error: loginError } = await supabase.auth.signInWithPassword({
+            email: email.trim(),
+            password,
+          })
+          if (loginError) {
+            toast.error(loginError.message)
+            setLoading(false)
+            return
+          }
+        } else {
+          toast.error(error.message)
+          setLoading(false)
           return
         }
-        // Sign up worked, now set session manually
-        const loginRes = await fetch(
-          'https://mpgrsobnxpumzyabomaz.supabase.co/auth/v1/token?grant_type=password',
-          {
-            method: 'POST',
-            headers: {
-              apikey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1wZ3Jzb2JueHB1bXp5YWJvbWF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMDM1MjUsImV4cCI6MjA5MTY3OTUyNX0.d28yAWJpPxRU2i2yLQZjsseXv6AWBqKHmoDeRv_NWP8',
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email: email.trim(), password }),
-          }
-        )
-        const loginData = await loginRes.json()
-        if (loginData.access_token) {
-          await supabase.auth.setSession({
-            access_token: loginData.access_token,
-            refresh_token: loginData.refresh_token,
-          })
-          window.location.href = '/dashboard'
-        } else {
-          toast.error('Login failed after sign up')
-        }
-        return
       }
-      toast.error(data.error_description || data.msg || 'Login failed')
-      return
-    }
 
-    // Success - set session via supabase client (handles cookies properly)
-    await supabase.auth.setSession({
-      access_token: data.access_token,
-      refresh_token: data.refresh_token,
-    })
-    window.location.href = '/dashboard'
+      setLoading(false)
+      window.location.href = '/dashboard'
+    } catch (err) {
+      toast.error('Something went wrong. Please try again.')
+      setLoading(false)
+    }
   }
 
   const handleMagicLink = async (e: React.FormEvent) => {
