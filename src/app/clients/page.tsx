@@ -51,11 +51,6 @@ function NewClientModal({
       phone: form.phone || null,
       address: form.address || null,
       notes: form.notes || null,
-      source: form.source,
-      status: 'active',
-      website: form.website || null,
-      instagram: form.instagram || null,
-      facebook: form.facebook || null,
     })
 
     setLoading(false)
@@ -126,34 +121,6 @@ function NewClientModal({
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
             placeholder="Any notes..."
           />
-        </div>
-        {/* Social Links */}
-        <div className="border-t border-border pt-4">
-          <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted">Online Profiles</h3>
-          <div className="space-y-3">
-            <Input
-              id="client-website"
-              label="Website"
-              type="url"
-              placeholder="https://example.com"
-              value={form.website}
-              onChange={(e) => setForm({ ...form, website: e.target.value })}
-            />
-            <Input
-              id="client-instagram"
-              label="Instagram"
-              placeholder="https://instagram.com/username"
-              value={form.instagram}
-              onChange={(e) => setForm({ ...form, instagram: e.target.value })}
-            />
-            <Input
-              id="client-facebook"
-              label="Facebook"
-              placeholder="https://facebook.com/username"
-              value={form.facebook}
-              onChange={(e) => setForm({ ...form, facebook: e.target.value })}
-            />
-          </div>
         </div>
         <div className="flex gap-3 pt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
@@ -231,7 +198,6 @@ export default function ClientsPage() {
               <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">Name</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden sm:table-cell">Phone</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">Email</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden lg:table-cell">Source</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">Status</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">Actions</th>
             </tr>
@@ -281,12 +247,9 @@ export default function ClientsPage() {
                       '—'
                     )}
                   </td>
-                  <td className="hidden px-4 py-3 text-sm text-muted lg:table-cell">
-                    {client.source}
-                  </td>
                   <td className="px-4 py-3">
-                    <Badge variant={statusBadgeVariant(client.status)}>
-                      {client.status}
+                    <Badge variant="green">
+                      active
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
