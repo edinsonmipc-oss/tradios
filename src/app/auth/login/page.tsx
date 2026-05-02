@@ -34,13 +34,22 @@ export default function LoginPage() {
   const [mode, setMode] = useState<'login' | 'magic'>('login')
   const supabase = createClient()
 
+  const setServerSession = async (accessToken: string, refreshToken: string) => {
+    const res = await fetch('/api/auth/callback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ access_token: accessToken, refresh_token: refreshToken }),
+    })
+    return res.ok
+  }
+
   const handlePasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim() || !password) return
     setLoading(true)
 
     try {
-      // Use Supabase client directly — handles cookies properly via @supabase/ssr
+      // Step 1: Sign in via Supabase client
       const { data, error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -62,19 +71,34 @@ export default function LoginPage() {
             setLoading(false)
             return
           }
-          // Sign up succeeded — now sign in (cookies are set by signInWithPassword)
+          // Sign up succeeded — now sign in
           toast.success('Account created! Signing you in...')
-          const { error: loginError } = await supabase.auth.signInWithPassword({
+          const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
             email: email.trim(),
             password,
           })
-          if (loginError) {
-            toast.error(loginError.message)
+          if (loginError || !loginData.session) {
+            toast.error(loginError?.message || 'Login failed')
+            setLoading(false)
+            return
+          }
+          // Step 2: Set session server-side via Set-Cookie headers (reliable in all browsers)
+          const ok = await setServerSession(loginData.session.access_token, loginData.session.refresh_token)
+          if (!ok) {
+            toast.error('Failed to establish session')
             setLoading(false)
             return
           }
         } else {
           toast.error(error.message)
+          setLoading(false)
+          return
+        }
+      } else if (data.session) {
+        // Step 2: Set session server-side via Set-Cookie headers
+        const ok = await setServerSession(data.session.access_token, data.session.refresh_token)
+        if (!ok) {
+          toast.error('Failed to establish session')
           setLoading(false)
           return
         }

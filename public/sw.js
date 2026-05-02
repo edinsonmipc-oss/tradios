@@ -1,26 +1,23 @@
-// Tradeos Service Worker - App Shell Cache for Offline Support
+// Tradios Service Worker - Static assets only (no HTML caching to avoid auth issues)
+const CACHE_NAME = 'tradeos-static-v1'
 
-const CACHE_NAME = 'tradeos-cache-v1';
-const STATIC_ASSETS = [
-  '/',
-  '/dashboard',
+// Only cache static assets, NEVER HTML pages (to avoid auth/session issues)
+const PRECACHE_ASSETS = [
   '/manifest.json',
   '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
-];
+  '/icons/icon-512x512.png',
+]
 
-// Install: cache the app shell
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Caching app shell');
-      return cache.addAll(STATIC_ASSETS);
+      console.log('[SW] Precaching static assets')
+      return cache.addAll(PRECACHE_ASSETS)
     })
-  );
-  self.skipWaiting();
-});
+  )
+  self.skipWaiting()
+})
 
-// Activate: clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -28,59 +25,44 @@ self.addEventListener('activate', (event) => {
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => {
-            console.log('[SW] Deleting old cache:', name);
-            return caches.delete(name);
+            console.log('[SW] Deleting old cache:', name)
+            return caches.delete(name)
           })
-      );
+      )
     })
-  );
-  self.clients.claim();
-});
+  )
+  self.clients.claim()
+})
 
-// Fetch: network-first with cache fallback for navigation,
-// cache-first for static assets
 self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
+  const { request } = event
+  if (request.method !== 'GET') return
 
-  // Skip non-GET requests and non-HTTP(S) protocols
-  if (request.method !== 'GET') return;
-  if (!url.protocol.startsWith('http')) return;
+  const url = new URL(request.url)
 
-  // For navigation requests: network-first, fallback to cache
-  if (request.mode === 'navigate') {
+  // Only cache static assets (JS, CSS, images, fonts) — never HTML
+  if (
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.match(/\.(js|css|svg|png|jpg|jpeg|gif|webp|woff2?|ttf|ico|json)$/)
+  ) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // Cache the latest version
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, clone);
-          });
-          return response;
-        })
-        .catch(() => {
-          return caches.match(request).then((cached) => {
-            return cached || caches.match('/dashboard');
-          });
-        })
-    );
-    return;
+      caches.match(request).then((cached) => {
+        return (
+          cached ||
+          fetch(request).then((response) => {
+            const clone = response.clone()
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
+            return response
+          })
+        )
+      })
+    )
+    return
   }
 
-  // For static assets (JS, CSS, images): cache-first
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      return (
-        cached ||
-        fetch(request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, clone);
-          });
-          return response;
-        })
-      );
-    })
-  );
-});
+  // For all other requests (HTML, API): network only, never cache
+  event.respondWith(fetch(request).catch(() => {
+    // Offline fallback: return a minimal offline page
+    return new Response('Offline. Please connect to the internet.', { status: 503 })
+  }))
+})
