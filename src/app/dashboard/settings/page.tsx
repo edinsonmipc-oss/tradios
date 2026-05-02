@@ -88,27 +88,24 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    const fileExt = file.name.split('.').pop()
-    const fileName = `avatars/${user.id}.${fileExt}`
+    // Upload via server API (bypasses RLS with service_role key)
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('userId', user.id)
 
-    const { error: uploadError } = await supabase.storage
-      .from('profiles')
-      .upload(fileName, file, { upsert: true })
+    const res = await fetch('/api/upload-logo', { method: 'POST', body: formData })
+    const data = await res.json()
 
-    if (uploadError) {
-      toast.error(uploadError.message)
+    if (!res.ok) {
+      toast.error(data.error || 'Upload failed')
       return
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from('profiles')
-      .getPublicUrl(fileName)
-
-    setAvatarUrl(publicUrl)
+    setAvatarUrl(data.url)
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, logo_url: publicUrl })
+      .upsert({ id: user.id, logo_url: data.url })
 
     if (updateError) {
       toast.error(updateError.message)
