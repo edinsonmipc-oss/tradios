@@ -5,18 +5,19 @@ import { Loader2 } from 'lucide-react'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 
 const variants = {
-  default: 'bg-primary text-white hover:bg-primary-dark',
-  primary: 'bg-primary text-white hover:bg-primary-dark',
-  secondary: 'bg-card border border-border text-foreground hover:bg-card-hover',
-  ghost: 'text-muted hover:text-foreground hover:bg-card',
-  danger: 'bg-red-600 text-white hover:bg-red-700',
-  success: 'bg-secondary text-white hover:bg-emerald-600',
+  default: 'bg-primary text-white hover:bg-primary-dark shadow-sm hover:shadow-md',
+  primary: 'bg-primary text-white hover:bg-primary-dark shadow-sm hover:shadow-md',
+  secondary: 'bg-card border border-card-border text-foreground hover:bg-card-hover hover:border-primary/30',
+  ghost: 'text-muted hover:text-foreground hover:bg-card-hover',
+  danger: 'bg-danger text-white hover:bg-red-700 shadow-sm',
+  success: 'bg-success text-white hover:bg-emerald-600 shadow-sm',
+  gold: 'bg-secondary text-white hover:bg-secondary-dark shadow-sm hover:shadow-md',
 }
 
 const sizes = {
-  sm: 'px-3 py-1.5 text-sm',
-  md: 'px-4 py-2 text-sm',
-  lg: 'px-6 py-3 text-base',
+  sm: 'px-3 py-1.5 text-xs rounded-lg',
+  md: 'px-5 py-2.5 text-sm rounded-xl',
+  lg: 'px-7 py-3.5 text-base rounded-xl',
 }
 
 type ButtonVariant = keyof typeof variants

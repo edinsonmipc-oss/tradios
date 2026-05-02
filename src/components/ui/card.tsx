@@ -7,7 +7,7 @@ const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
       <div
         ref={ref}
         className={cn(
-          'rounded-xl border border-border bg-card p-6 shadow-sm',
+          'rounded-xl border border-card-border bg-card p-6 shadow-md hover:shadow-lg transition-all duration-300 card-glow',
           className
         )}
         {...props}

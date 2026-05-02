@@ -17,12 +17,12 @@ export function StatCard({ icon, label, value, trend, className }: StatCardProps
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-card p-5 shadow-sm transition-all hover:border-primary/30',
+        'rounded-xl border border-card-border bg-card p-5 shadow-md transition-all duration-300 hover:shadow-lg hover:border-primary/30 card-glow',
         className
       )}
     >
       <div className="flex items-start justify-between">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
           <div className="text-primary">{icon}</div>
         </div>
         {trend && (

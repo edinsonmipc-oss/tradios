@@ -99,3 +99,19 @@ export type Visit = {
   created_at: string;
   clients?: { name: string; phone?: string; email?: string; address?: string };
 };
+
+export type FollowUp = {
+  id: string;
+  user_id: string;
+  client_id: string;
+  title: string;
+  description: string | null;
+  due_date: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  status: 'pending' | 'completed' | 'cancelled';
+  category: 'call' | 'email' | 'visit' | 'reminder' | 'follow_up' | 'quote' | 'payment';
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+  clients?: { name: string; phone?: string; email?: string; address?: string };
+};
