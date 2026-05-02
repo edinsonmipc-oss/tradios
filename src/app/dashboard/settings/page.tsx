@@ -88,30 +88,24 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    // Upload via server API (bypasses RLS with service_role key)
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('userId', user.id)
+    // Convert image to base64 and save directly in DB (no storage needed)
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const base64 = reader.result as string
 
-    const res = await fetch('/api/upload-logo', { method: 'POST', body: formData })
-    const data = await res.json()
+      setAvatarUrl(base64)
 
-    if (!res.ok) {
-      toast.error(data.error || 'Upload failed')
-      return
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .upsert({ id: user.id, logo_url: base64 })
+
+      if (updateError) {
+        toast.error(updateError.message)
+      } else {
+        toast.success('¡Logo actualizado!')
+      }
     }
-
-    setAvatarUrl(data.url)
-
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .upsert({ id: user.id, logo_url: data.url })
-
-    if (updateError) {
-      toast.error(updateError.message)
-    } else {
-      toast.success('¡Logo actualizado!')
-    }
+    reader.readAsDataURL(file)
   }
 
   const handleSave = async () => {
