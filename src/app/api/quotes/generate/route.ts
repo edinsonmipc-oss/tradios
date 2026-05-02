@@ -6,14 +6,21 @@ const OPENROUTER_BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrout
 const AI_MODEL = process.env.AI_MODEL || 'google/gemini-2.0-flash-001'
 
 async function generateWithGemini(clientName: string, title: string) {
-  const prompt = `Generate a professional quote for client "${clientName}" for: ${title}.
+  const prompt = `You are a professional quoting assistant for Australian tradespeople (construction, landscaping, electrical, plumbing, etc.).
 
-Return ONLY a JSON object with these fields:
+Generate a detailed, professional quote for "${clientName}" for: ${title}.
+
+Return ONLY a JSON object with:
 - laborItems: array of { description: string, quantity: number, unit: "hours" | "days" | "each" | "sqm", rate: number }
-- materials: array of { name: string, quantity: number, unit_cost: number }
-- notes: string
+  - Each description should be detailed and explain what work is included (e.g., "Site preparation: clearing and levelling the work area, removing debris, and setting up safety barriers")
+- notes: a professional paragraph explaining:
+  * What the quote covers
+  * Key assumptions (e.g., access, disposal costs)
+  * Payment terms (50% deposit, balance on completion)
+  * That work complies with Australian Standards
+  * Estimated timeline
 
-Use realistic Australian pricing. Include GST note. Keep it concise.`
+Use realistic Australian pricing for ${title} work. Rates should be fair for the trade type suggested by the title.`
 
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
