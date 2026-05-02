@@ -53,11 +53,19 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             {typedQuote.title} • Created {formatDate(typedQuote.created_at)}
           </p>
         </div>
-        <QuoteActions
-          quoteId={typedQuote.id}
-          status={typedQuote.status}
-          clientId={typedQuote.client_id}
-        />
+        <div className="flex gap-2">
+          <Link href={`/quotes/${typedQuote.id}/edit`}>
+            <Button variant="secondary" size="sm">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+              Edit
+            </Button>
+          </Link>
+          <QuoteActions
+            quoteId={typedQuote.id}
+            status={typedQuote.status}
+            clientId={typedQuote.client_id}
+          />
+        </div>
       </div>
 
       {/* Client Info */}
@@ -119,8 +127,14 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             <span className="text-muted">Subtotal</span>
             <span className="text-foreground">{formatCurrency(typedQuote.subtotal)}</span>
           </div>
+          {(typedQuote.gst || 0) > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted">GST (10%)</span>
+              <span className="text-foreground">{formatCurrency(typedQuote.gst || 0)}</span>
+            </div>
+          )}
           <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
-            <span className="text-foreground">Total</span>
+            <span className="text-foreground">Total {(typedQuote.gst || 0) > 0 ? '(incl. GST)' : ''}</span>
             <span className="text-primary">{formatCurrency(typedQuote.total)}</span>
           </div>
         </div>

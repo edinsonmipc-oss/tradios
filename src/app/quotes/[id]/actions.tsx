@@ -38,9 +38,10 @@ export default function QuoteActions({
     }
   }
 
-  const handleDownloadPDF = async () => {
-    toast.success('PDF generation started...')
-    // PDF generation placeholder
+  const handleDownloadPDF = () => {
+    // Open print page in new tab (user can print/save as PDF)
+    const printUrl = window.location.pathname + '/print'
+    window.open(printUrl, '_blank')
   }
 
   return (

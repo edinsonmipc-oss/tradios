@@ -50,6 +50,7 @@ function QuoteForm() {
   const [saving, setSaving] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [lastQuoteNum, setLastQuoteNum] = useState(0)
+  const [includeGst, setIncludeGst] = useState(true)
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -106,7 +107,8 @@ function QuoteForm() {
   }
 
   const subtotal = laborItems.reduce((sum, item) => sum + item.total, 0)
-  const total = Math.round(subtotal * 1.1 * 100) / 100 // GST included
+  const gstAmount = includeGst ? Math.round(subtotal * 0.1 * 100) / 100 : 0
+  const total = subtotal + gstAmount
 
   const handleGenerateWithAI = async () => {
     const selectedClient = clients.find((c) => c.id === clientId)
@@ -178,6 +180,7 @@ function QuoteForm() {
         title: title.trim(),
         items: laborItems.map(({ id, ...rest }) => rest),
         subtotal,
+        gst: gstAmount,
         total,
         notes,
         status: 'draft',
@@ -319,9 +322,22 @@ function QuoteForm() {
             <span className="text-muted">Subtotal</span>
             <span className="text-foreground">${subtotal.toFixed(2)}</span>
           </div>
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <label className="text-muted cursor-pointer" onClick={() => setIncludeGst(!includeGst)}>GST (10%)</label>
+              <button
+                type="button"
+                onClick={() => setIncludeGst(!includeGst)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${includeGst ? 'bg-primary' : 'bg-border'}`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${includeGst ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+              </button>
+            </div>
+            <span className="text-foreground">${gstAmount.toFixed(2)}</span>
+          </div>
         </div>
         <div className="flex justify-between pt-4 text-lg font-bold">
-          <span className="text-foreground">Total (incl. GST)</span>
+          <span className="text-foreground">Total {includeGst ? '(incl. GST)' : '(excl. GST)'}</span>
           <span className="text-primary">${total.toFixed(2)}</span>
         </div>
       </Card>
