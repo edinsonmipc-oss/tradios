@@ -26,23 +26,25 @@ import {
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { useI18n } from '@/lib/i18n'
+import LanguageSwitcher from '@/components/language-switcher'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/clients', label: 'Clients', icon: Users },
-  { href: '/quotes', label: 'Quotes', icon: FileText },
-  { href: '/invoices', label: 'Invoices', icon: FileSpreadsheet },
-  { href: '/payments', label: 'Payments', icon: DollarSign },
-  { href: '/visits', label: 'Visits', icon: Calendar },
-  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
-  { href: '/follow-ups', label: 'Follow-Ups', icon: Bell },
-  { href: '/expenses', label: 'Expenses', icon: Receipt },
-  { href: '/inventory', label: 'Inventory', icon: Package },
-  { href: '/accounting', label: 'Accounting', icon: TrendingUp },
-  { href: '/insurance', label: 'Insurance', icon: Shield },
-  { href: '/gallery', label: 'Gallery', icon: Image },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard', label: 'Dashboard', i18nKey: 'nav.dashboard', icon: LayoutDashboard },
+  { href: '/clients', label: 'Clients', i18nKey: 'nav.clients', icon: Users },
+  { href: '/quotes', label: 'Quotes', i18nKey: 'nav.quotes', icon: FileText },
+  { href: '/invoices', label: 'Invoices', i18nKey: 'nav.invoices', icon: FileSpreadsheet },
+  { href: '/payments', label: 'Payments', i18nKey: 'nav.payments', icon: DollarSign },
+  { href: '/visits', label: 'Visits', i18nKey: 'nav.visits', icon: Calendar },
+  { href: '/calendar', label: 'Calendar', i18nKey: 'nav.calendar', icon: CalendarDays },
+  { href: '/follow-ups', label: 'Follow-Ups', i18nKey: 'nav.followUps', icon: Bell },
+  { href: '/expenses', label: 'Expenses', i18nKey: 'nav.expenses', icon: Receipt },
+  { href: '/inventory', label: 'Inventory', i18nKey: 'nav.inventory', icon: Package },
+  { href: '/accounting', label: 'Accounting', i18nKey: 'nav.accounting', icon: TrendingUp },
+  { href: '/insurance', label: 'Insurance', i18nKey: 'nav.insurance', icon: Shield },
+  { href: '/gallery', label: 'Gallery', i18nKey: 'nav.gallery', icon: Image },
+  { href: '/messages', label: 'Messages', i18nKey: 'nav.messages', icon: MessageSquare },
+  { href: '/dashboard/settings', label: 'Settings', i18nKey: 'nav.settings', icon: Settings },
 ]
 
 interface SidebarProps {
@@ -54,6 +56,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { t, locale } = useI18n()
   const [businessName, setBusinessName] = useState<string | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
@@ -76,7 +79,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
-    toast.success('Signed out')
+    toast.success(t('nav.signOut') + ' ✓')
     router.push('/auth/login')
   }
 
@@ -137,21 +140,25 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 )}
               >
                 <item.icon className="h-4.5 w-4.5 flex-shrink-0" />
-                {item.label}
+                {t(item.i18nKey)}
               </Link>
             )
           })}
         </nav>
 
-        {/* Sign Out */}
-        <div className="border-t border-border p-3">
+        {/* Language + Sign Out */}
+        <div className="border-t border-border p-3 space-y-1">
           <button
             onClick={handleSignOut}
             className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted hover:text-foreground hover:bg-card-hover transition-all duration-200"
           >
             <LogOut className="h-4.5 w-4.5 flex-shrink-0" />
-            Sign Out
+            {t('nav.signOut')}
           </button>
+          <div className="flex items-center justify-between px-3 py-1">
+            <LanguageSwitcher />
+            <span className="text-xs text-muted/50">{t('language.' + (locale === 'es' ? 'en' : 'es'))}</span>
+          </div>
         </div>
       </aside>
     </>
