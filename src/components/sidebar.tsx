@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -53,6 +54,25 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [businessName, setBusinessName] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('business_name, logo_url')
+        .eq('id', user.id)
+        .single()
+      if (profile) {
+        if (profile.business_name) setBusinessName(profile.business_name)
+        if (profile.logo_url) setLogoUrl(profile.logo_url)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -79,10 +99,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <Link href="/dashboard" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dark">
-              <span className="text-sm font-bold text-white">T</span>
-            </div>
-            <span className="text-lg font-bold text-foreground">Tradios</span>
+            {logoUrl ? (
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden">
+                <img src={logoUrl} alt={businessName || 'Logo'} className="h-8 w-8 object-cover" />
+              </div>
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dark">
+                <span className="text-sm font-bold text-white">T</span>
+              </div>
+            )}
+            <span className="text-lg font-bold text-foreground">
+              {businessName || 'Tradios'}
+            </span>
           </Link>
           <button
             onClick={onClose}

@@ -1,15 +1,36 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Menu } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const supabase = createClient()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [businessName, setBusinessName] = useState<string | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('business_name, logo_url')
+        .eq('id', user.id)
+        .single()
+      if (profile) {
+        if (profile.business_name) setBusinessName(profile.business_name)
+        if (profile.logo_url) setLogoUrl(profile.logo_url)
+      }
+    }
+    fetchProfile()
+  }, [])
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -26,10 +47,14 @@ export default function DashboardLayout({
             <Menu className="h-6 w-6" />
           </button>
           <a href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity lg:hidden">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-              <span className="text-xs font-bold text-white">T</span>
-            </div>
-            <span className="text-base font-bold text-foreground">Tradios</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt={businessName || 'Logo'} className="h-7 w-7 rounded-lg object-cover" />
+            ) : (
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+                <span className="text-xs font-bold text-white">{(businessName || 'Tradios')[0]}</span>
+              </div>
+            )}
+            <span className="text-base font-bold text-foreground">{businessName || 'Tradios'}</span>
           </a>
           {/* Home button always visible on mobile */}
           <a
