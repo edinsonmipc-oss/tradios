@@ -13,12 +13,10 @@ import {
   Upload,
   Search,
   TrendingUp,
-  TrendingDown,
   X,
   Camera,
-  FileText,
 } from 'lucide-react'
-import { formatDate, formatCurrency } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 // ---------- types ----------
@@ -28,21 +26,10 @@ type Expense = {
   user_id: string
   vendor: string
   amount: number
-  gst_amount: number | null
   category: string
   description: string | null
-  date_incurred: string | null
-  tax_deductible: boolean
-  notes: string | null
-  client_id: string | null
   receipt_url: string | null
   created_at: string
-  clients?: { name: string } | null
-}
-
-type Client = {
-  id: string
-  name: string
 }
 
 const CATEGORIES = [
@@ -84,36 +71,14 @@ function AddExpenseModal({
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
-  const [clients, setClients] = useState<Client[]>([])
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const [form, setForm] = useState({
     vendor: '',
     amount: '',
-    gst_amount: '',
     category: 'Materials',
     description: '',
-    date_incurred: new Date().toISOString().split('T')[0],
-    tax_deductible: false,
-    notes: '',
-    client_id: '',
   })
-
-  // Fetch clients when modal opens
-  useEffect(() => {
-    if (!open) return
-    const fetchClients = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data } = await supabase
-        .from('clients')
-        .select('id, name')
-        .eq('user_id', user.id)
-        .order('name')
-      if (data) setClients(data as Client[])
-    }
-    fetchClients()
-  }, [open])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -186,19 +151,12 @@ function AddExpenseModal({
       receiptUrl = urlData?.publicUrl || null
     }
 
-    const gstAmount = form.gst_amount ? parseFloat(form.gst_amount) : null
-
     const { error } = await supabase.from('expenses').insert({
       user_id: user.id,
       vendor: form.vendor.trim(),
       amount,
-      gst_amount: gstAmount,
       category: form.category,
       description: form.description.trim() || null,
-      date_incurred: form.date_incurred || null,
-      tax_deductible: form.tax_deductible,
-      notes: form.notes.trim() || null,
-      client_id: form.client_id || null,
       receipt_url: receiptUrl,
     })
 
@@ -212,13 +170,8 @@ function AddExpenseModal({
       setForm({
         vendor: '',
         amount: '',
-        gst_amount: '',
         category: 'Materials',
         description: '',
-        date_incurred: new Date().toISOString().split('T')[0],
-        tax_deductible: false,
-        notes: '',
-        client_id: '',
       })
       removeReceipt()
       onCreated()
@@ -266,74 +219,7 @@ function AddExpenseModal({
               ))}
             </select>
           </div>
-          <Input
-            id="exp-gst"
-            label="GST Amount ($)"
-            type="number"
-            step="0.01"
-            min="0"
-            placeholder="0.00"
-            value={form.gst_amount}
-            onChange={(e) => setForm({ ...form, gst_amount: e.target.value })}
-          />
         </div>
-
-        <Input
-          id="exp-date"
-          label="Date Incurred"
-          type="date"
-          value={form.date_incurred}
-          onChange={(e) => setForm({ ...form, date_incurred: e.target.value })}
-        />
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-muted">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={2}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
-            placeholder="What was this expense for?"
-          />
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-muted">Client (optional)</label>
-          <select
-            value={form.client_id}
-            onChange={(e) => setForm({ ...form, client_id: e.target.value })}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-          >
-            <option value="">No client</option>
-            {clients.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="mb-1.5 block text-sm font-medium text-muted">Notes</label>
-          <textarea
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-            rows={2}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
-            placeholder="Additional notes..."
-          />
-        </div>
-
-        {/* Tax deductible checkbox */}
-        <label className="flex items-center gap-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.tax_deductible}
-            onChange={(e) => setForm({ ...form, tax_deductible: e.target.checked })}
-            className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary/50 accent-primary"
-          />
-          <span className="text-sm text-foreground">Tax deductible</span>
-        </label>
 
         {/* Receipt upload */}
         <div>
@@ -537,8 +423,6 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<Category>('All')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
   const [showScanModal, setShowScanModal] = useState(false)
 
@@ -552,22 +436,13 @@ export default function ExpensesPage() {
 
     let query = supabase
       .from('expenses')
-      .select('*, clients(name)')
+      .select('*')
       .eq('user_id', user.id)
-      .order('date_incurred', { ascending: false })
       .order('created_at', { ascending: false })
 
     // Category filter
     if (categoryFilter !== 'All') {
       query = query.eq('category', categoryFilter)
-    }
-
-    // Date range filter
-    if (dateFrom) {
-      query = query.gte('date_incurred', dateFrom)
-    }
-    if (dateTo) {
-      query = query.lte('date_incurred', dateTo)
     }
 
     // Search filter
@@ -584,17 +459,10 @@ export default function ExpensesPage() {
 
   useEffect(() => {
     fetchExpenses()
-  }, [categoryFilter, dateFrom, dateTo])
+  }, [categoryFilter])
 
   // Calculate totals
   const totalAmount = expenses.reduce((sum, e) => sum + e.amount, 0)
-  const totalGst = expenses.reduce(
-    (sum, e) => sum + (e.gst_amount || 0),
-    0
-  )
-  const taxDeductibleTotal = expenses
-    .filter((e) => e.tax_deductible)
-    .reduce((sum, e) => sum + e.amount, 0)
 
   return (
     <div className="space-y-6">
@@ -615,7 +483,7 @@ export default function ExpensesPage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-1 max-w-sm">
         <Card>
           <div className="flex items-center justify-between">
             <div>
@@ -626,32 +494,6 @@ export default function ExpensesPage() {
             </div>
             <div className="rounded-lg bg-blue-500/10 p-3">
               <TrendingUp className="h-5 w-5 text-blue-400" />
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted">Total GST</p>
-              <p className="mt-1 text-2xl font-bold text-foreground">
-                {formatCurrency(totalGst)}
-              </p>
-            </div>
-            <div className="rounded-lg bg-amber-500/10 p-3">
-              <Receipt className="h-5 w-5 text-amber-400" />
-            </div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted">Tax Deductible</p>
-              <p className="mt-1 text-2xl font-bold text-foreground">
-                {formatCurrency(taxDeductibleTotal)}
-              </p>
-            </div>
-            <div className="rounded-lg bg-emerald-500/10 p-3">
-              <TrendingDown className="h-5 w-5 text-emerald-400" />
             </div>
           </div>
         </Card>
@@ -691,35 +533,13 @@ export default function ExpensesPage() {
             </select>
           </div>
 
-          {/* Date range */}
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted">From</label>
-            <input
-              type="date"
-              value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-muted">To</label>
-            <input
-              type="date"
-              value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="rounded-lg border border-border bg-card px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            />
-          </div>
-
           {/* Clear filters */}
-          {(categoryFilter !== 'All' || dateFrom || dateTo) && (
+          {categoryFilter !== 'All' && (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => {
                 setCategoryFilter('All')
-                setDateFrom('')
-                setDateTo('')
               }}
             >
               <X className="h-3.5 w-3.5" /> Clear
@@ -734,9 +554,6 @@ export default function ExpensesPage() {
           <thead>
             <tr className="border-b border-border bg-card">
               <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
-                Date
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider">
                 Vendor
               </th>
               <th className="px-4 py-3 text-left text-xs font-medium text-muted uppercase tracking-wider hidden sm:table-cell">
@@ -745,16 +562,13 @@ export default function ExpensesPage() {
               <th className="px-4 py-3 text-right text-xs font-medium text-muted uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-muted uppercase tracking-wider hidden md:table-cell">
-                Tax Deductible
-              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-card">
             {loading ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={3}
                   className="px-4 py-12 text-center text-sm text-muted"
                 >
                   Loading...
@@ -763,7 +577,7 @@ export default function ExpensesPage() {
             ) : expenses.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={3}
                   className="px-4 py-12 text-center text-sm text-muted"
                 >
                   <div className="flex flex-col items-center gap-2">
@@ -785,11 +599,6 @@ export default function ExpensesPage() {
                   key={expense.id}
                   className="transition-colors hover:bg-card-hover"
                 >
-                  <td className="px-4 py-3 text-sm text-muted">
-                    {expense.date_incurred
-                      ? formatDate(expense.date_incurred)
-                      : '—'}
-                  </td>
                   <td className="px-4 py-3">
                     <div>
                       <p className="text-sm font-medium text-foreground">
@@ -798,11 +607,6 @@ export default function ExpensesPage() {
                       {expense.description && (
                         <p className="mt-0.5 text-xs text-muted line-clamp-1">
                           {expense.description}
-                        </p>
-                      )}
-                      {expense.clients?.name && (
-                        <p className="mt-0.5 text-xs text-muted">
-                          {expense.clients.name}
                         </p>
                       )}
                     </div>
@@ -817,23 +621,9 @@ export default function ExpensesPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {formatCurrency(expense.amount)}
-                      </p>
-                      {expense.gst_amount ? (
-                        <p className="text-xs text-muted">
-                          GST: {formatCurrency(expense.gst_amount)}
-                        </p>
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="hidden px-4 py-3 text-center md:table-cell">
-                    {expense.tax_deductible ? (
-                      <Badge variant="green">Yes</Badge>
-                    ) : (
-                      <span className="text-xs text-muted">No</span>
-                    )}
+                    <p className="text-sm font-semibold text-foreground">
+                      {formatCurrency(expense.amount)}
+                    </p>
                   </td>
                 </tr>
               ))

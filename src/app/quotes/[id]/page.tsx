@@ -7,7 +7,7 @@ import QuoteActions from './actions'
 import Link from 'next/link'
 import { ArrowLeft, Download } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils'
-import type { Quote, QuoteItem, MaterialItem } from '@/lib/utils'
+import type { Quote, QuoteItem } from '@/lib/utils'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -30,7 +30,6 @@ export default async function QuoteDetailPage({ params }: PageProps) {
 
   const typedQuote = quote as unknown as Quote
   const items = typedQuote.items || []
-  const materials = typedQuote.materials || []
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
@@ -113,47 +112,12 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         </Card>
       )}
 
-      {/* Materials */}
-      {materials.length > 0 && (
-        <Card>
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Materials</h2>
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border text-xs text-muted">
-                <th className="pb-2 text-left font-medium">Name</th>
-                <th className="pb-2 text-right font-medium">Qty</th>
-                <th className="pb-2 text-right font-medium">Unit Cost</th>
-                <th className="pb-2 text-right font-medium">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {materials.map((mat: MaterialItem, i: number) => (
-                <tr key={i} className="border-b border-border/50 text-sm">
-                  <td className="py-2 text-foreground">{mat.name}</td>
-                  <td className="py-2 text-right text-muted">{mat.quantity}</td>
-                  <td className="py-2 text-right text-muted">
-                    {formatCurrency(mat.unit_cost)}
-                  </td>
-                  <td className="py-2 text-right font-medium text-foreground">
-                    {formatCurrency(mat.total)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      )}
-
       {/* Totals */}
       <Card>
         <div className="space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-muted">Subtotal</span>
             <span className="text-foreground">{formatCurrency(typedQuote.subtotal)}</span>
-          </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-muted">GST (10%)</span>
-            <span className="text-foreground">{formatCurrency(typedQuote.gst)}</span>
           </div>
           <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
             <span className="text-foreground">Total</span>
@@ -167,12 +131,6 @@ export default async function QuoteDetailPage({ params }: PageProps) {
         <Card>
           <h2 className="mb-2 text-sm font-semibold text-foreground">Notes</h2>
           <p className="whitespace-pre-wrap text-sm text-muted">{typedQuote.notes}</p>
-        </Card>
-      )}
-      {typedQuote.terms && (
-        <Card>
-          <h2 className="mb-2 text-sm font-semibold text-foreground">Terms & Conditions</h2>
-          <p className="whitespace-pre-wrap text-sm text-muted">{typedQuote.terms}</p>
         </Card>
       )}
     </div>

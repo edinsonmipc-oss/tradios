@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import VisitActions from './actions'
 import Link from 'next/link'
-import { ArrowLeft, Camera, Ruler, Plus } from 'lucide-react'
+import { ArrowLeft, Camera, Plus } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
 interface PageProps {
@@ -88,19 +88,6 @@ export default async function VisitDetailPage({ params }: PageProps) {
         <Card>
           <h2 className="mb-2 text-sm font-semibold text-foreground">Notes</h2>
           <p className="whitespace-pre-wrap text-sm text-muted">{visit.notes}</p>
-        </Card>
-      )}
-
-      {/* Measurements */}
-      {visit.measurements && visit.measurements.length > 0 && (
-        <Card>
-          <div className="mb-3 flex items-center gap-2">
-            <Ruler className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Measurements</h2>
-          </div>
-          <pre className="rounded-lg bg-background p-3 text-xs text-muted overflow-x-auto">
-            {JSON.stringify(visit.measurements, null, 2)}
-          </pre>
         </Card>
       )}
 

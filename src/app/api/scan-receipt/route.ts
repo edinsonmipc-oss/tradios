@@ -10,9 +10,7 @@ const AI_MODEL = process.env.AI_MODEL || 'google/gemini-2.0-flash-001'
 const MOCK_RESPONSE = {
   vendor: 'Bunnings Warehouse',
   amount: 247.5,
-  gst_amount: 22.5,
-  date: '2026-05-02',
-  category: 'materials',
+  category: 'Materials',
   description: 'Timber and fittings',
 }
 
@@ -30,7 +28,7 @@ async function scanWithGemini(base64Image: string, mimeType: string) {
                 inline_data: { mime_type: mimeType, data: base64Image },
               },
               {
-                text: 'Extract the following information from this receipt image. Return ONLY a JSON object with these fields: vendor (string), amount (number), gst_amount (number or 0), date (string in YYYY-MM-DD format), category (one of: materials, tools, fuel, vehicle, insurance, office, subcontractor, other), description (string). If you cannot read the receipt clearly, return {"error": "Could not read receipt clearly"}',
+                text: 'Extract the following information from this receipt image. Return ONLY a JSON object with these fields: vendor (string), amount (number), category (string: Materials, Tools, Fuel, Vehicle, Insurance, Office, Subcontractor, Other), description (string). If you cannot read the receipt clearly, return {"error": "Could not read receipt clearly"}',
               },
             ],
           },
@@ -69,7 +67,7 @@ async function scanWithOpenRouter(base64Image: string, mimeType: string) {
           content: [
             {
               type: 'text',
-              text: 'Extract the following information from this receipt image. Return ONLY a JSON object with these fields: vendor (string), amount (number), gst_amount (number or 0), date (string in YYYY-MM-DD format), category (one of: materials, tools, fuel, vehicle, insurance, office, subcontractor, other), description (string). If you cannot read the receipt clearly, return {"error": "Could not read receipt clearly"}',
+              text: 'Extract the following information from this receipt image. Return ONLY a JSON object with these fields: vendor (string), amount (number), category (string: Materials, Tools, Fuel, Vehicle, Insurance, Office, Subcontractor, Other), description (string). If you cannot read the receipt clearly, return {"error": "Could not read receipt clearly"}',
             },
             { type: 'image_url', image_url: { url: dataUrl } },
           ],

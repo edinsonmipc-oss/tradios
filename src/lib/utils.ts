@@ -44,8 +44,6 @@ export type Client = {
   phone: string | null;
   address: string | null;
   notes: string | null;
-  source: string;
-  status: string;
   created_at: string;
 };
 
@@ -57,16 +55,10 @@ export type Quote = {
   quote_number: string;
   title: string;
   items: QuoteItem[];
-  materials: MaterialItem[];
   subtotal: number;
-  gst: number;
   total: number;
   notes: string;
-  terms: string;
   status: 'draft' | 'sent' | 'accepted' | 'declined' | 'invoiced';
-  pdf_url: string | null;
-  sent_at: string | null;
-  response_at: string | null;
   created_at: string;
   clients?: { name: string; phone?: string; email?: string; address?: string };
 };
@@ -79,12 +71,6 @@ export type QuoteItem = {
   total: number;
 };
 
-export type MaterialItem = {
-  name: string;
-  quantity: number;
-  unit_cost: number;
-  total: number;
-};
 
 export type Visit = {
   id: string;
@@ -94,7 +80,6 @@ export type Visit = {
   scheduled_date: string | null;
   status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
   notes: string | null;
-  measurements: any[];
   address: string | null;
   created_at: string;
   clients?: { name: string; phone?: string; email?: string; address?: string };

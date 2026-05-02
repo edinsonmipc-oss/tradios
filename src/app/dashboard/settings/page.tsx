@@ -45,7 +45,7 @@ export default function SettingsPage() {
           abn: profile.abn || '',
           address: profile.address || '',
         })
-        if (profile.avatar_url) setAvatarUrl(profile.avatar_url)
+        if (profile.logo_url) setAvatarUrl(profile.logo_url)
       }
       setFetching(false)
     }
@@ -79,7 +79,7 @@ export default function SettingsPage() {
 
     const { error: updateError } = await supabase
       .from('profiles')
-      .upsert({ id: user.id, avatar_url: publicUrl })
+      .upsert({ id: user.id, logo_url: publicUrl })
 
     if (updateError) {
       toast.error(updateError.message)

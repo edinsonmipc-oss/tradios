@@ -3,8 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Send, MessageSquare, Mail, Phone } from 'lucide-react'
+import { Send, MessageSquare } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
@@ -12,9 +11,9 @@ interface Message {
   id: string
   client_id: string
   content: string
-  channel: string
   direction: string
-  created_at: string
+  status: string
+  sent_at: string
 }
 
 interface ClientSummary {
@@ -29,7 +28,6 @@ export default function MessagesPage() {
   const [clients, setClients] = useState<ClientSummary[]>([])
   const [selectedClient, setSelectedClient] = useState<string | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
-  const [channel, setChannel] = useState<'sms' | 'email'>('sms')
   const [content, setContent] = useState('')
   const [sending, setSending] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -55,7 +53,7 @@ export default function MessagesPage() {
         .from('messages')
         .select('*')
         .eq('client_id', selectedClient)
-        .order('created_at', { ascending: true })
+        .order('sent_at', { ascending: true })
       if (data) setMessages(data as Message[])
     }
     fetchMessages()
@@ -101,7 +99,6 @@ export default function MessagesPage() {
       user_id: user.id,
       client_id: selectedClient,
       content: content.trim(),
-      channel,
       direction: 'outbound',
     })
 
@@ -110,7 +107,7 @@ export default function MessagesPage() {
       toast.error(error.message)
     } else {
       setContent('')
-      toast.success(`${channel === 'sms' ? 'SMS' : 'Email'} sent!`)
+      toast.success('Message sent!')
     }
   }
 
@@ -162,32 +159,13 @@ export default function MessagesPage() {
                   {selectedClientData?.name}
                 </p>
                 <p className="text-xs text-muted">
-                  {channel === 'sms'
-                    ? selectedClientData?.phone || 'No phone'
-                    : selectedClientData?.email || 'No email'}
+                  {selectedClientData?.phone || selectedClientData?.email || 'No contact'}
                 </p>
               </div>
-              <div className="ml-auto flex gap-1">
-                <button
-                  onClick={() => setChannel('sms')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    channel === 'sms'
-                      ? 'bg-primary text-white'
-                      : 'text-muted hover:text-foreground hover:bg-card-hover'
-                  }`}
-                >
+              <div className="ml-auto">
+                <span className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
                   SMS
-                </button>
-                <button
-                  onClick={() => setChannel('email')}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                    channel === 'email'
-                      ? 'bg-primary text-white'
-                      : 'text-muted hover:text-foreground hover:bg-card-hover'
-                  }`}
-                >
-                  Email
-                </button>
+                </span>
               </div>
             </div>
 
@@ -222,7 +200,7 @@ export default function MessagesPage() {
                           msg.direction === 'outbound' ? 'text-white/70' : 'text-muted'
                         }`}
                       >
-                        {formatDate(msg.created_at)} • {msg.channel}
+                        {formatDate(msg.sent_at)} • {msg.direction}
                       </p>
                     </div>
                   </div>
@@ -244,11 +222,7 @@ export default function MessagesPage() {
                       handleSend()
                     }
                   }}
-                  placeholder={
-                    channel === 'sms'
-                      ? 'Type an SMS message...'
-                      : 'Type an email message...'
-                  }
+                  placeholder="Type a message..."
                   className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 <Button onClick={handleSend} loading={sending}>

@@ -22,16 +22,6 @@ import {
 
 type Period = 'this_month' | 'this_quarter' | 'this_year' | 'all_time'
 
-type QuoteSummary = {
-  total: number
-  gst_amount: number
-}
-
-type ExpenseSummary = {
-  total: number
-  gst_amount: number
-}
-
 type RecentTransaction = {
   id: string
   type: 'revenue' | 'expense'
@@ -39,8 +29,6 @@ type RecentTransaction = {
   amount: number
   date: string
   category?: string
-  client_name?: string
-  vendor?: string
 }
 
 type MonthlySummary = {
@@ -144,14 +132,14 @@ export default function AccountingPage() {
     // Build base queries
     let quoteQuery = supabase
       .from('quotes')
-      .select('id, total, gst, gst_amount, created_at, title, quote_number, clients(name)')
+      .select('id, total, created_at, title, quote_number, clients(name)')
       .eq('user_id', user.id)
       .eq('status', 'accepted')
       .order('created_at', { ascending: false })
 
     let expenseQuery = supabase
       .from('expenses')
-      .select('id, amount, gst_amount, category, description, vendor, date_incurred, created_at')
+      .select('id, amount, category, description, vendor, created_at')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
@@ -178,14 +166,10 @@ export default function AccountingPage() {
 
     // Compute summaries
     const revTotal = quotes.reduce((sum: number, q: any) => sum + (Number(q.total) || 0), 0)
-    const revGst = quotes.reduce((sum: number, q: any) => {
-      // quotes store gst_amount directly, or derive from gst field
-      const gstVal = q.gst_amount != null ? Number(q.gst_amount) : (Number(q.gst) || 0)
-      return sum + gstVal
-    }, 0)
+    const revGst = 0
 
     const expTotal = expenses.reduce((sum: number, e: any) => sum + (Number(e.amount) || 0), 0)
-    const expGst = expenses.reduce((sum: number, e: any) => sum + (Number(e.gst_amount) || 0), 0)
+    const expGst = 0
 
     setRevenueTotal(revTotal)
     setRevenueGst(revGst)
@@ -207,7 +191,6 @@ export default function AccountingPage() {
       description: q.title || q.quote_number || 'Quote',
       amount: Number(q.total) || 0,
       date: q.created_at,
-      client_name: q.clients?.name,
     }))
 
     const expenseTxns: RecentTransaction[] = allExpenses.map((e: any) => ({
@@ -215,9 +198,8 @@ export default function AccountingPage() {
       type: 'expense' as const,
       description: e.description || e.vendor || 'Expense',
       amount: Number(e.amount) || 0,
-      date: e.date_incurred || e.created_at,
+      date: e.created_at,
       category: e.category,
-      vendor: e.vendor,
     }))
 
     const merged = [...revenueTxns, ...expenseTxns]
@@ -255,7 +237,7 @@ export default function AccountingPage() {
     })
 
     allExpenses.forEach((e: any) => {
-      const dateStr = e.date_incurred || e.created_at
+      const dateStr = e.created_at
       const d = new Date(dateStr)
       const key = `${d.getFullYear()}-${d.getMonth()}`
       if (!map[key]) {
@@ -282,7 +264,7 @@ export default function AccountingPage() {
     const rows = [['Type', 'Description', 'Amount', 'Date', 'Details']]
     recentTransactions.forEach((t) => {
       const details =
-        t.type === 'revenue' ? t.client_name || '' : t.vendor || t.category || ''
+        t.type === 'revenue' ? '' : t.category || ''
       rows.push([t.type, t.description, t.amount.toFixed(2), formatDate(t.date), details])
     })
 
@@ -355,9 +337,6 @@ export default function AccountingPage() {
             <p className="mt-2 text-2xl font-bold text-emerald-400">
               {loading ? '...' : formatCurrency(revenueTotal)}
             </p>
-            <p className="mt-1 text-xs text-muted">
-              GST Collected: {loading ? '...' : formatCurrency(revenueGst)}
-            </p>
           </CardContent>
         </Card>
 
@@ -369,9 +348,6 @@ export default function AccountingPage() {
             </div>
             <p className="mt-2 text-2xl font-bold text-red-400">
               {loading ? '...' : formatCurrency(expenseTotal)}
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              GST Paid: {loading ? '...' : formatCurrency(expenseGst)}
             </p>
           </CardContent>
         </Card>
@@ -595,43 +571,6 @@ export default function AccountingPage() {
         </CardContent>
       </Card>
 
-      {/* GST Summary */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Card>
-          <CardContent>
-            <p className="text-sm font-medium text-muted">GST Collected (from Quotes)</p>
-            <p className="mt-1 text-2xl font-bold text-blue-400">
-              {loading ? '...' : formatCurrency(revenueGst)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent>
-            <p className="text-sm font-medium text-muted">GST Paid (on Expenses)</p>
-            <p className="mt-1 text-2xl font-bold text-blue-400">
-              {loading ? '...' : formatCurrency(expenseGst)}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="sm:col-span-2">
-          <CardContent>
-            <p className="text-sm font-medium text-muted">GST Net Position</p>
-            <p
-              className={`mt-1 text-2xl font-bold ${
-                revenueGst - expenseGst >= 0 ? 'text-amber-400' : 'text-emerald-400'
-              }`}
-            >
-              {loading ? '...' : formatCurrency(revenueGst - expenseGst)}
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              {revenueGst - expenseGst >= 0
-                ? 'Amount payable to ATO'
-                : 'Amount refundable from ATO'}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Recent Transactions */}
       <Card>
         <CardHeader>
@@ -677,7 +616,7 @@ export default function AccountingPage() {
                         {txn.description}
                       </p>
                       <p className="text-xs text-muted">
-                        {txn.type === 'revenue' ? txn.client_name || 'Client' : txn.vendor || txn.category || 'Expense'}
+                        {txn.type === 'revenue' ? 'Client' : txn.category || 'Expense'}
                         {' · '}
                         {formatDate(txn.date)}
                       </p>

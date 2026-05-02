@@ -13,9 +13,6 @@ import {
   Plus,
   ArrowLeft,
   Info,
-  Globe,
-  Camera,
-  ExternalLink,
 } from 'lucide-react'
 import { formatDate, formatCurrency } from '@/lib/utils'
 
@@ -69,7 +66,6 @@ export default async function ClientDetailPage({ params }: PageProps) {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-foreground">{client.name}</h1>
-            <Badge variant={statusBadgeVariant(client.status)}>{client.status}</Badge>
           </div>
           <p className="mt-1 text-sm text-muted">Client since {formatDate(client.created_at)}</p>
         </div>
@@ -108,51 +104,6 @@ export default async function ClientDetailPage({ params }: PageProps) {
                 <span>{client.address}</span>
               </div>
             )}
-            {client.source && (
-              <p className="text-sm text-muted">
-                <span className="text-foreground">Source:</span> {client.source}
-              </p>
-            )}
-            {/* Social Links */}
-            <div className="mt-3 space-y-2 border-t border-border pt-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-muted">Online</h3>
-              {client.website && (
-                <a
-                  href={client.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-primary hover:text-primary-dark transition-colors"
-                >
-                  <Globe className="h-4 w-4" />
-                  <span className="truncate">{client.website.replace(/^https?:\/\//, '')}</span>
-                </a>
-              )}
-              {client.instagram && (
-                <a
-                  href={client.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-pink-400 hover:text-pink-300 transition-colors"
-                >
-                  <Camera className="h-4 w-4" />
-                  <span className="truncate">@{client.instagram.split('/').pop()}</span>
-                </a>
-              )}
-              {client.facebook && (
-                <a
-                  href={client.facebook}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 transition-colors"
-                >
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="truncate">{client.facebook.split('/').pop() || 'Facebook'}</span>
-                </a>
-              )}
-              {!client.website && !client.instagram && !client.facebook && (
-                <p className="text-xs text-muted">No online profiles added</p>
-              )}
-            </div>
           </div>
           {client.notes && (
             <div className="mt-4 border-t border-border pt-4">
@@ -252,9 +203,9 @@ export default async function ClientDetailPage({ params }: PageProps) {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-medium text-foreground">
-                        {msg.channel || 'message'}
+                        {msg.direction}
                       </span>
-                      <span className="text-xs text-muted">{formatDate(msg.created_at)}</span>
+                      <span className="text-xs text-muted">{formatDate(msg.sent_at)}</span>
                     </div>
                     <p className="text-sm text-muted">{msg.content}</p>
                   </div>

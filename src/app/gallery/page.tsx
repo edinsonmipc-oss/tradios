@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { Upload, Trash2, X, Image as ImageIcon } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -11,24 +10,17 @@ import toast from 'react-hot-toast'
 interface GalleryImage {
   id: string
   url: string
-  title: string
   description: string | null
-  category: string
   created_at: string
 }
-
-const categories = ['all', 'electrical', 'plumbing', 'building', 'landscaping', 'other']
 
 export default function GalleryPage() {
   const supabase = createClient()
   const [images, setImages] = useState<GalleryImage[]>([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState('all')
   const [showUpload, setShowUpload] = useState(false)
   const [uploadForm, setUploadForm] = useState({
-    title: '',
     description: '',
-    category: 'other',
   })
   const [uploadFile, setUploadFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
@@ -39,29 +31,24 @@ export default function GalleryPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
-    let query = supabase
+    const { data } = await supabase
       .from('gallery')
       .select('*')
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
 
-    if (category !== 'all') {
-      query = query.eq('category', category)
-    }
-
-    const { data } = await query
     if (data) setImages(data as GalleryImage[])
     setLoading(false)
   }
 
   useEffect(() => {
     fetchImages()
-  }, [category])
+  }, [])
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!uploadFile || !uploadForm.title.trim()) {
-      toast.error('File and title are required')
+    if (!uploadFile) {
+      toast.error('Please select an image file')
       return
     }
 
@@ -93,9 +80,7 @@ export default function GalleryPage() {
     const { error: dbError } = await supabase.from('gallery').insert({
       user_id: user.id,
       url: publicUrl,
-      title: uploadForm.title.trim(),
       description: uploadForm.description.trim() || null,
-      category: uploadForm.category,
     })
 
     setUploading(false)
@@ -105,7 +90,7 @@ export default function GalleryPage() {
       toast.success('Image uploaded!')
       setShowUpload(false)
       setUploadFile(null)
-      setUploadForm({ title: '', description: '', category: 'other' })
+      setUploadForm({ description: '' })
       fetchImages()
     }
   }
@@ -134,23 +119,6 @@ export default function GalleryPage() {
         </Button>
       </div>
 
-      {/* Category filter */}
-      <div className="flex gap-1 overflow-x-auto pb-1">
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setCategory(cat)}
-            className={`whitespace-nowrap rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-              category === cat
-                ? 'bg-primary text-white'
-                : 'text-muted hover:text-foreground hover:bg-card'
-            }`}
-          >
-            {cat === 'all' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
-        ))}
-      </div>
-
       {/* Grid */}
       {loading ? (
         <p className="text-center text-sm text-muted py-12">Loading...</p>
@@ -177,19 +145,13 @@ export default function GalleryPage() {
               <div className="aspect-square overflow-hidden">
                 <img
                   src={img.url}
-                  alt={img.title}
+                  alt="Gallery photo"
                   className="h-full w-full object-cover transition-transform group-hover:scale-105"
                 />
               </div>
               <div className="absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-black/70 via-transparent to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-sm font-medium text-white truncate">{img.title}</p>
-                {img.description && (
-                  <p className="text-xs text-white/80 truncate">{img.description}</p>
-                )}
+                <p className="text-sm font-medium text-white truncate">{img.description || 'Photo'}</p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="rounded bg-white/20 px-2 py-0.5 text-xs text-white">
-                    {img.category}
-                  </span>
                   <button
                     onClick={() => handleDelete(img.id, img.url)}
                     className="rounded-full bg-red-500/80 p-1 text-white hover:bg-red-500 transition-colors"
@@ -242,14 +204,6 @@ export default function GalleryPage() {
               onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
             />
           </div>
-          <Input
-            id="gallery-title"
-            label="Title *"
-            placeholder="e.g. Kitchen Reno - Job #42"
-            value={uploadForm.title}
-            onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
-            required
-          />
           <div>
             <label className="mb-1.5 block text-sm font-medium text-muted">Description</label>
             <textarea
@@ -259,20 +213,6 @@ export default function GalleryPage() {
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
               placeholder="Brief description..."
             />
-          </div>
-          <div>
-            <label className="mb-1.5 block text-sm font-medium text-muted">Category</label>
-            <select
-              value={uploadForm.category}
-              onChange={(e) => setUploadForm({ ...uploadForm, category: e.target.value })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="electrical">Electrical</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="building">Building</option>
-              <option value="landscaping">Landscaping</option>
-              <option value="other">Other</option>
-            </select>
           </div>
           <div className="flex gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={() => setShowUpload(false)}>
