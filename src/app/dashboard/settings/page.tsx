@@ -1,5 +1,33 @@
 'use client'
 
+// ============================================================
+// SQL MIGRATION — Add these columns to the profiles table if
+// they don't already exist in the DB:
+//
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS business_name TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS full_name TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS abn TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS address TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS website TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS business_description TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS services TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS years_in_business TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS license_number TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS insurance_details TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS logo_url TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS instagram TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS facebook TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS tiktok TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_hourly_rate NUMERIC(10,2) DEFAULT 0;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_helper_rate NUMERIC(10,2) DEFAULT 0;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS default_deposit_pct NUMERIC(5,2) DEFAULT 50;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS quote_validity_days INTEGER DEFAULT 14;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS public_liability_note TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS google_review_link TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS service_area TEXT;
+// ============================================================
+
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -16,6 +44,9 @@ import {
   AtSign,
   Globe,
   Music,
+  DollarSign,
+  MapPinned,
+  ShieldAlert,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -39,6 +70,13 @@ export default function SettingsPage() {
     instagram: '',
     facebook: '',
     tiktok: '',
+    service_area: '',
+    default_hourly_rate: '',
+    default_helper_rate: '',
+    default_deposit_pct: '',
+    quote_validity_days: '',
+    public_liability_note: '',
+    google_review_link: '',
   })
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -73,8 +111,22 @@ export default function SettingsPage() {
           instagram: profile.instagram || '',
           facebook: profile.facebook || '',
           tiktok: profile.tiktok || '',
+          service_area: profile.service_area || '',
+          default_hourly_rate: profile.default_hourly_rate?.toString() || '',
+          default_helper_rate: profile.default_helper_rate?.toString() || '',
+          default_deposit_pct: profile.default_deposit_pct?.toString() || '50',
+          quote_validity_days: profile.quote_validity_days?.toString() || '14',
+          public_liability_note: profile.public_liability_note || '',
+          google_review_link: profile.google_review_link || '',
         })
         if (profile.logo_url) setAvatarUrl(profile.logo_url)
+      } else {
+        // Set defaults for new profiles
+        setForm((prev) => ({
+          ...prev,
+          default_deposit_pct: '50',
+          quote_validity_days: '14',
+        }))
       }
       setFetching(false)
     }
@@ -133,6 +185,21 @@ export default function SettingsPage() {
       instagram: form.instagram || null,
       facebook: form.facebook || null,
       tiktok: form.tiktok || null,
+      service_area: form.service_area || null,
+      default_hourly_rate: form.default_hourly_rate
+        ? parseFloat(form.default_hourly_rate)
+        : null,
+      default_helper_rate: form.default_helper_rate
+        ? parseFloat(form.default_helper_rate)
+        : null,
+      default_deposit_pct: form.default_deposit_pct
+        ? parseFloat(form.default_deposit_pct)
+        : 50,
+      quote_validity_days: form.quote_validity_days
+        ? parseInt(form.quote_validity_days, 10)
+        : 14,
+      public_liability_note: form.public_liability_note || null,
+      google_review_link: form.google_review_link || null,
       updated_at: new Date().toISOString(),
     })
 
@@ -153,14 +220,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-8 pb-12">
+    <div className="mx-auto max-w-3xl space-y-6 pb-12 px-4 sm:px-0">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">
           Configuración
         </h1>
         <p className="mt-1.5 text-sm text-muted">
-          Administra la información de tu negocio y perfil
+          Administra la información de tu negocio, precios y perfil
         </p>
       </div>
 
@@ -236,7 +303,7 @@ export default function SettingsPage() {
             <Input
               id="business-name"
               label="Nombre del Negocio"
-              placeholder="Ej: Construcciones López"
+              placeholder="Ej: Prime Hermes Tradie Services"
               value={form.business_name}
               onChange={(e) => setForm({ ...form, business_name: e.target.value })}
             />
@@ -258,7 +325,7 @@ export default function SettingsPage() {
             <Input
               id="settings-phone"
               label="Teléfono"
-              placeholder="Ej: 0400 000 000"
+              placeholder="Ej: 0406 170 544"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
             />
@@ -322,6 +389,49 @@ export default function SettingsPage() {
       </Card>
 
       {/* ============================================ */}
+      {/* Área de Servicio / Ubicación */}
+      {/* ============================================ */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <MapPinned className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">
+              Área de Servicio y Dirección
+            </h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <label
+                htmlFor="address"
+                className="mb-1.5 block text-sm font-medium text-muted"
+              >
+                Dirección del Negocio
+              </label>
+              <textarea
+                id="address"
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                rows={3}
+                className="w-full rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted/40 transition-all duration-200 hover:border-muted-dark focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/40"
+                placeholder="Calle, número, ciudad, código postal..."
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Input
+                id="service-area"
+                label="Área de Servicio"
+                placeholder="Ej: Sídney, Melbourne, Brisbane y alrededores"
+                value={form.service_area}
+                onChange={(e) => setForm({ ...form, service_area: e.target.value })}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ============================================ */}
       {/* Acerca del Negocio */}
       {/* ============================================ */}
       <Card>
@@ -371,6 +481,118 @@ export default function SettingsPage() {
                 placeholder="Enumera los servicios que ofreces (uno por línea)..."
               />
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ============================================ */}
+      {/* Precios y Cotizaciones */}
+      {/* ============================================ */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">
+              Precios y Cotizaciones
+            </h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Input
+              id="default-hourly-rate"
+              label="Tarifa por Hora (por defecto)"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Ej: 150.00"
+              value={form.default_hourly_rate}
+              onChange={(e) =>
+                setForm({ ...form, default_hourly_rate: e.target.value })
+              }
+            />
+            <Input
+              id="default-helper-rate"
+              label="Tarifa de Ayudante (por defecto)"
+              type="number"
+              step="0.01"
+              min="0"
+              placeholder="Ej: 75.00"
+              value={form.default_helper_rate}
+              onChange={(e) =>
+                setForm({ ...form, default_helper_rate: e.target.value })
+              }
+            />
+            <Input
+              id="default-deposit-pct"
+              label="% Depósito (por defecto)"
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              placeholder="50"
+              value={form.default_deposit_pct}
+              onChange={(e) =>
+                setForm({ ...form, default_deposit_pct: e.target.value })
+              }
+            />
+            <Input
+              id="quote-validity-days"
+              label="Vigencia de Cotización (días)"
+              type="number"
+              step="1"
+              min="1"
+              placeholder="14"
+              value={form.quote_validity_days}
+              onChange={(e) =>
+                setForm({ ...form, quote_validity_days: e.target.value })
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ============================================ */}
+      {/* Notas Legales y Reseñas */}
+      {/* ============================================ */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <ShieldAlert className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">
+              Notas Legales y Reseñas
+            </h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="public-liability-note"
+                className="mb-1.5 block text-sm font-medium text-muted"
+              >
+                Nota de Responsabilidad Pública
+              </label>
+              <textarea
+                id="public-liability-note"
+                value={form.public_liability_note}
+                onChange={(e) =>
+                  setForm({ ...form, public_liability_note: e.target.value })
+                }
+                rows={3}
+                className="w-full rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted/40 transition-all duration-200 hover:border-muted-dark focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/40"
+                placeholder="Ej: Este trabajo cuenta con cobertura de responsabilidad civil por $5 millones..."
+              />
+            </div>
+            <Input
+              id="google-review-link"
+              label="Enlace de Reseña de Google"
+              placeholder="https://g.page/r/..."
+              value={form.google_review_link}
+              onChange={(e) =>
+                setForm({ ...form, google_review_link: e.target.value })
+              }
+            />
           </div>
         </CardContent>
       </Card>
@@ -433,39 +655,9 @@ export default function SettingsPage() {
       </Card>
 
       {/* ============================================ */}
-      {/* Dirección */}
-      {/* ============================================ */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Dirección</h2>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div>
-            <label
-              htmlFor="address"
-              className="mb-1.5 block text-sm font-medium text-muted"
-            >
-              Dirección del Negocio
-            </label>
-            <textarea
-              id="address"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-              rows={3}
-              className="w-full rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted/40 transition-all duration-200 hover:border-muted-dark focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/40"
-              placeholder="Calle, número, ciudad, código postal..."
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* ============================================ */}
       {/* Save Button */}
       {/* ============================================ */}
-      <div className="flex justify-end">
+      <div className="flex justify-end pt-2">
         <Button onClick={handleSave} loading={loading} size="lg">
           <Save className="h-4 w-4" />
           Guardar Cambios
