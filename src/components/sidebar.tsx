@@ -25,6 +25,7 @@ import {
   MessageCircle,
   ClipboardList,
   Repeat,
+  Mail,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -50,6 +51,7 @@ const navItems = [
   { href: '/insurance', label: 'Insurance', i18nKey: 'nav.insurance', icon: Shield },
   { href: '/gallery', label: 'Gallery', i18nKey: 'nav.gallery', icon: Image },
   { href: '/messages', label: 'Messages', i18nKey: 'nav.messages', icon: MessageSquare },
+  { href: '/emails', label: 'Emails', i18nKey: 'nav.emails', icon: Mail },
   { href: '/dashboard/settings', label: 'Settings', i18nKey: 'nav.settings', icon: Settings },
 ]
 

@@ -12,6 +12,8 @@ CREATE TABLE profiles (
   email TEXT,
   phone TEXT,
   logo_url TEXT,
+  email_sender TEXT,
+  email_signature TEXT,
   abn TEXT,
   address TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),

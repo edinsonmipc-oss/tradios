@@ -26,6 +26,8 @@
 // ALTER TABLE profiles ADD COLUMN IF NOT EXISTS public_liability_note TEXT;
 // ALTER TABLE profiles ADD COLUMN IF NOT EXISTS google_review_link TEXT;
 // ALTER TABLE profiles ADD COLUMN IF NOT EXISTS service_area TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email_sender TEXT;
+// ALTER TABLE profiles ADD COLUMN IF NOT EXISTS email_signature TEXT;
 // ============================================================
 
 import { useEffect, useState, useRef } from 'react'
@@ -47,6 +49,7 @@ import {
   DollarSign,
   MapPinned,
   ShieldAlert,
+  Mail,
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -77,6 +80,8 @@ export default function SettingsPage() {
     quote_validity_days: '',
     public_liability_note: '',
     google_review_link: '',
+    email_sender: '',
+    email_signature: '',
   })
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -118,6 +123,8 @@ export default function SettingsPage() {
           quote_validity_days: profile.quote_validity_days?.toString() || '14',
           public_liability_note: profile.public_liability_note || '',
           google_review_link: profile.google_review_link || '',
+          email_sender: profile.email_sender || '',
+          email_signature: profile.email_signature || '',
         })
         if (profile.logo_url) setAvatarUrl(profile.logo_url)
       } else {
@@ -200,6 +207,8 @@ export default function SettingsPage() {
         : 14,
       public_liability_note: form.public_liability_note || null,
       google_review_link: form.google_review_link || null,
+      email_sender: form.email_sender || null,
+      email_signature: form.email_signature || null,
       updated_at: new Date().toISOString(),
     })
 
@@ -593,6 +602,53 @@ export default function SettingsPage() {
                 setForm({ ...form, google_review_link: e.target.value })
               }
             />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ============================================ */}
+      {/* Configuración de Correo Electrónico */}
+      {/* ============================================ */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-semibold text-foreground">
+              Configuración de Correo Electrónico
+            </h2>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <p className="text-xs text-muted/70">
+              Configura el remitente y la firma para los correos que envías desde Tradios.
+              Necesitas agregar <code className="rounded bg-card-border px-1.5 py-0.5 text-[11px]">RESEND_API_KEY</code> en las variables de entorno de Render para habilitar el envío real.
+            </p>
+            <Input
+              id="email-sender"
+              label="Dirección de Remitente"
+              placeholder="notifications@tudominio.com"
+              value={form.email_sender}
+              onChange={(e) => setForm({ ...form, email_sender: e.target.value })}
+            />
+            <div>
+              <label
+                htmlFor="email-signature"
+                className="mb-1.5 block text-sm font-medium text-muted"
+              >
+                Firma de Correo
+              </label>
+              <textarea
+                id="email-signature"
+                value={form.email_signature}
+                onChange={(e) =>
+                  setForm({ ...form, email_signature: e.target.value })
+                }
+                rows={4}
+                className="w-full rounded-xl border border-card-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted/40 transition-all duration-200 hover:border-muted-dark focus:outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/40"
+                placeholder={`Nombre del Negocio\nTel: 0400 000 000\nABN: 00 000 000 000`}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

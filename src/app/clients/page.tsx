@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
-import { Search, Plus, Phone, Mail, MoreHorizontal } from 'lucide-react'
+import { EmailModal } from '@/components/email/email-modal'
+import { Search, Plus, Phone, Mail, MoreHorizontal, Send } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import type { Client } from '@/lib/utils'
@@ -140,6 +141,7 @@ export default function ClientsPage() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [showNewModal, setShowNewModal] = useState(false)
+  const [emailModal, setEmailModal] = useState<{ open: boolean; client: Client | null }>({ open: false, client: null })
 
   const fetchClients = async () => {
     setLoading(true)
@@ -246,11 +248,26 @@ export default function ClientsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link href={`/clients/${client.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </Link>
+                    <div className="flex items-center justify-end gap-1">
+                      {client.email && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setEmailModal({ open: true, client })
+                          }}
+                          title="Send email"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                        </Button>
+                      )}
+                      <Link href={`/clients/${client.id}`}>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -264,6 +281,16 @@ export default function ClientsPage() {
         onClose={() => setShowNewModal(false)}
         onCreated={fetchClients}
       />
+
+      {emailModal.client && (
+        <EmailModal
+          open={emailModal.open}
+          onClose={() => setEmailModal({ open: false, client: null })}
+          clientName={emailModal.client.name}
+          clientEmail={emailModal.client.email || ''}
+          clientId={emailModal.client.id}
+        />
+      )}
     </div>
   )
 }
