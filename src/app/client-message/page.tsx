@@ -416,10 +416,11 @@ export default function ClientMessagePage() {
   const [jobType, setJobType] = useState<JobType>('General enquiry')
   const [tone, setTone] = useState<Tone>('Friendly')
   const [generatedReply, setGeneratedReply] = useState<string | null>(null)
+  const [shortVersion, setShortVersion] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     if (!clientMessage.trim()) {
       toast.error('Please paste the client message first')
       return
@@ -427,30 +428,53 @@ export default function ClientMessagePage() {
 
     setIsGenerating(true)
 
-    // Simulate slight delay for realism
-    // AI API INTEGRATION POINT: Replace this setTimeout with an async call to
-    // an AI API (e.g. OpenAI, Anthropic, or a custom endpoint).
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/assistant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientMessage, jobType, tone }),
+      })
+      const data = await res.json()
+      if (data.reply) {
+        setGeneratedReply(data.reply)
+        if (data.shortVersion) setShortVersion(data.shortVersion)
+      } else {
+        toast.error(data.error || 'Failed to generate reply')
+      }
+    } catch {
+      toast.error('Failed to connect to AI. Using template fallback.')
       const reply = getTemplateReply(jobType, tone, clientMessage)
       setGeneratedReply(reply)
-      setIsGenerating(false)
-    }, 400)
+    }
+    setIsGenerating(false)
   }, [clientMessage, jobType, tone])
 
-  const handleRegenerate = useCallback(() => {
+  const handleRegenerate = useCallback(async () => {
     if (!clientMessage.trim()) {
       toast.error('Please paste the client message first')
       return
     }
     setIsGenerating(true)
 
-    // AI API INTEGRATION POINT: Replace with AI API call.
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/assistant/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientMessage, jobType, tone }),
+      })
+      const data = await res.json()
+      if (data.reply) {
+        setGeneratedReply(data.reply)
+        toast.success('Reply regenerated')
+      } else {
+        toast.error(data.error || 'Failed to regenerate')
+      }
+    } catch {
       const reply = getTemplateReply(jobType, tone, clientMessage)
       setGeneratedReply(reply)
-      setIsGenerating(false)
       toast.success('Reply regenerated')
-    }, 300)
+    }
+    setIsGenerating(false)
   }, [clientMessage, jobType, tone])
 
   const handleCopy = useCallback(async () => {
@@ -465,28 +489,52 @@ export default function ClientMessagePage() {
     }
   }, [generatedReply])
 
-  const handleMakeShorter = useCallback(() => {
+  const handleMakeShorter = useCallback(async () => {
     if (!generatedReply) return
-    // AI API INTEGRATION POINT: Replace with AI call for intelligent shortening.
-    const shorter = makeShorter(generatedReply)
-    setGeneratedReply(shorter)
-    toast.success('Reply shortened')
+    try {
+      const res = await fetch('/api/assistant/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: generatedReply, action: 'shorten' }),
+      })
+      const data = await res.json()
+      if (data.reply) setGeneratedReply(data.reply)
+      toast.success('Reply shortened')
+    } catch {
+      toast.error('Failed to shorten')
+    }
   }, [generatedReply])
 
-  const handleMakeMoreProfessional = useCallback(() => {
+  const handleMakeMoreProfessional = useCallback(async () => {
     if (!generatedReply) return
-    // AI API INTEGRATION POINT: Replace with AI call for professional rewrite.
-    const professional = makeMoreProfessional(generatedReply)
-    setGeneratedReply(professional)
-    toast.success('Reply made more professional')
+    try {
+      const res = await fetch('/api/assistant/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: generatedReply, action: 'professional' }),
+      })
+      const data = await res.json()
+      if (data.reply) setGeneratedReply(data.reply)
+      toast.success('Reply made more professional')
+    } catch {
+      toast.error('Failed to rewrite')
+    }
   }, [generatedReply])
 
-  const handleTranslateToSpanish = useCallback(() => {
+  const handleTranslateToSpanish = useCallback(async () => {
     if (!generatedReply) return
-    // AI API INTEGRATION POINT: Replace with AI translation API call.
-    const spanish = translateToSpanish(generatedReply)
-    setGeneratedReply(spanish)
-    toast.success('Translated to Spanish')
+    try {
+      const res = await fetch('/api/assistant/rewrite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: generatedReply, action: 'spanish' }),
+      })
+      const data = await res.json()
+      if (data.reply) setGeneratedReply(data.reply)
+      toast.success('Translated to Spanish')
+    } catch {
+      toast.error('Failed to translate')
+    }
   }, [generatedReply])
 
   return (

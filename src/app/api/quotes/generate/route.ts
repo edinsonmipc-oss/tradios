@@ -1,9 +1,59 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const OPENROUTER_BASE_URL = process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1'
 const AI_MODEL = process.env.AI_MODEL || 'google/gemini-2.0-flash-001'
+
+async function generateWithOpenRouter(clientName: string, title: string) {
+  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'HTTP-Referer': 'https://tradios.onrender.com',
+      'X-Title': 'Tradios',
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a professional quoting assistant for Australian tradespeople (construction, landscaping, paving, electrical, plumbing).
+
+Generate a detailed, professional quote for a client. Include specific, realistic pricing for Australian jobs.
+
+Return ONLY a valid JSON object with:
+- laborItems: array of { description: string, quantity: number, unit: "hours" | "days" | "each" | "sqm", rate: number }
+  - Each description must be detailed and explain exactly what work is included (e.g. "Site preparation: clearing and levelling the work area, removing debris, setting up safety barriers")
+- notes: a professional paragraph covering:
+  * Scope of the quote
+  * Key assumptions (access, disposal, materials)
+  * Payment terms (50% deposit, balance on completion)
+  * Compliance with Australian Standards
+  * Estimated timeline
+  * Validity period
+
+Use realistic Australian pricing for the trade. Rates should reflect current market rates for qualified tradies.`,        },
+        { role: 'user', content: `Generate a professional quote for client "${clientName}" for: ${title}` },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.7,
+      max_tokens: 2000,
+    }),
+  })
+
+  if (!response.ok) {
+    const errorBody = await response.text()
+    console.error('OpenRouter API error:', response.status, errorBody)
+    throw new Error(`OpenRouter API error: ${response.status}`)
+  }
+
+  const completion = await response.json()
+  const content = completion?.choices?.[0]?.message?.content
+  if (!content) throw new Error('No response from AI')
+  return JSON.parse(content)
+}
 
 async function generateWithGemini(clientName: string, title: string) {
   const prompt = `You are a professional quoting assistant for Australian tradespeople (construction, landscaping, electrical, plumbing, etc.).
@@ -46,44 +96,6 @@ Use realistic Australian pricing for ${title} work. Rates should be fair for the
   return JSON.parse(text)
 }
 
-async function generateWithOpenRouter(clientName: string, title: string) {
-  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: AI_MODEL,
-      messages: [
-        {
-          role: 'system',
-          content: `You are a quote generation assistant for Australian tradespeople.
-Generate a professional quote in JSON format with these fields:
-- laborItems: array of { description: string, quantity: number, unit: "hours" | "days" | "each" | "sqm", rate: number }
-- materials: array of { name: string, quantity: number, unit_cost: number }
-- notes: string
-
-Use realistic Australian pricing. Include GST note. Keep it concise.`,
-        },
-        { role: 'user', content: `Generate a quote for client "${clientName}" for: ${title}` },
-      ],
-      response_format: { type: 'json_object' },
-    }),
-  })
-
-  if (!response.ok) {
-    const errorBody = await response.text()
-    console.error('OpenRouter API error:', response.status, errorBody)
-    throw new Error(`OpenRouter API error: ${response.status}`)
-  }
-
-  const completion = await response.json()
-  const content = completion?.choices?.[0]?.message?.content
-  if (!content) throw new Error('No response from AI')
-  return JSON.parse(content)
-}
-
 export async function POST(request: NextRequest) {
   try {
     const { clientName, title } = await request.json()
@@ -92,17 +104,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
     }
 
-    // Try Gemini first (free tier)
-    if (GEMINI_API_KEY) {
-      console.log('Using Gemini API (free) for quote generation')
-      const result = await generateWithGemini(clientName, title || 'General quote')
-      return NextResponse.json(result)
-    }
-
-    // Fall back to OpenRouter
+    // Try OpenRouter first (user's preferred AI provider)
     if (OPENROUTER_API_KEY) {
       console.log('Using OpenRouter API for quote generation')
       const result = await generateWithOpenRouter(clientName, title || 'General quote')
+      return NextResponse.json(result)
+    }
+
+    // Fall back to Gemini
+    if (GEMINI_API_KEY) {
+      console.log('Using Gemini API (free) for quote generation')
+      const result = await generateWithGemini(clientName, title || 'General quote')
       return NextResponse.json(result)
     }
 
@@ -113,10 +125,6 @@ export async function POST(request: NextRequest) {
         { description: 'Initial site inspection and assessment', quantity: 2, unit: 'hours', rate: 85 },
         { description: 'Installation labour', quantity: 4, unit: 'hours', rate: 85 },
         { description: 'Testing and commissioning', quantity: 1, unit: 'hours', rate: 85 },
-      ],
-      materials: [
-        { name: 'Cabling and connectors', quantity: 1, unit_cost: 150 },
-        { name: 'Safety equipment and consumables', quantity: 1, unit_cost: 45 },
       ],
       notes: `Quote prepared for ${clientName} for ${title || 'General quote'}. All work complies with Australian Standards. Price includes GST.`,
     })
