@@ -77,7 +77,7 @@ export default function QuotesPage() {
             className="w-full rounded-lg border border-border bg-card py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/50"
           />
         </div>
-        <div className="flex gap-1">
+        <div className="flex gap-1 flex-wrap">
           {statusFilters.map((filter) => (
             <button
               key={filter}
@@ -132,7 +132,7 @@ export default function QuotesPage() {
                       {quote.quote_number}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted">
+                  <td className="px-4 py-3 text-sm text-muted truncate max-w-[120px]">
                     {quote.clients?.name || 'Unknown'}
                   </td>
                   <td className="hidden px-4 py-3 text-sm font-semibold text-foreground sm:table-cell">

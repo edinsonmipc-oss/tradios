@@ -293,12 +293,12 @@ function CalendarGrid({
             </span>
             {cell.events.length > 0 && (
               <div className="flex flex-wrap justify-center gap-0.5 max-w-full">
-                {cell.events.slice(0, 4).map((event) => (
+                {cell.events.slice(0, window.innerWidth < 640 ? 1 : 4).map((event) => (
                   <EventDot key={`${event.type}-${event.id}`} event={event} />
                 ))}
-                {cell.events.length > 4 && (
+                {cell.events.length > (window.innerWidth < 640 ? 1 : 4) && (
                   <span className="text-[10px] text-muted font-medium">
-                    +{cell.events.length - 4}
+                    +{cell.events.length - (window.innerWidth < 640 ? 1 : 4)}
                   </span>
                 )}
               </div>
@@ -521,7 +521,7 @@ export default function CalendarPage() {
             <h2 className="text-lg font-bold text-foreground">
               {MONTH_NAMES[month]} {year}
             </h2>
-            <div className="w-24" /> {/* spacer */}
+            <div className="w-16 hidden sm:block" /> {/* spacer */}
           </div>
 
           {loading ? (
