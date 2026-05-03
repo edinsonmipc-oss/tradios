@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     if (resendApiKey) {
       try {
         const resend = new Resend(resendApiKey)
-        const senderEmail = profile?.email_sender || 'onboarding@resend.dev'
+        const senderEmail = profile?.email_sender || 'tradios@midashboard.xyz'
         const signature = profile?.email_signature || ''
 
         const htmlBody = signature
