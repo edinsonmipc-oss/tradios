@@ -180,7 +180,7 @@ function QuoteForm() {
         title: title.trim(),
         items: laborItems.map(({ id, ...rest }) => rest),
         subtotal,
-        gst: gstAmount,
+        tax: gstAmount,
         total,
         notes,
         status: 'draft',

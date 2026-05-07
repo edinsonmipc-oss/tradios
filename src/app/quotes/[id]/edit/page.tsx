@@ -66,7 +66,7 @@ function EditQuoteForm({ id }: { id: Promise<{ id: string }> }) {
         setClientId(quote.client_id || '')
         setTitle(quote.title || '')
         setNotes(quote.notes || '')
-        setIncludeGst(quote.gst ? quote.gst > 0 : true)
+        setIncludeGst(quote.tax ? quote.tax > 0 : true)
         if (quote.items && quote.items.length > 0) {
           setLaborItems(
             quote.items.map((item: any, i: number) => ({
@@ -121,7 +121,7 @@ function EditQuoteForm({ id }: { id: Promise<{ id: string }> }) {
         title: title.trim(),
         items: laborItems.map(({ id, ...rest }) => rest),
         subtotal,
-        gst: gstAmount,
+        tax: gstAmount,
         total,
         notes,
       })

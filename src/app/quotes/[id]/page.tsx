@@ -127,14 +127,14 @@ export default async function QuoteDetailPage({ params }: PageProps) {
             <span className="text-muted">Subtotal</span>
             <span className="text-foreground">{formatCurrency(typedQuote.subtotal)}</span>
           </div>
-          {(typedQuote.gst || 0) > 0 && (
+          {(typedQuote.tax || 0) > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted">GST (10%)</span>
-              <span className="text-foreground">{formatCurrency(typedQuote.gst || 0)}</span>
+              <span className="text-foreground">{formatCurrency(typedQuote.tax || 0)}</span>
             </div>
           )}
           <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
-            <span className="text-foreground">Total {(typedQuote.gst || 0) > 0 ? '(incl. GST)' : ''}</span>
+            <span className="text-foreground">Total {(typedQuote.tax || 0) > 0 ? '(incl. GST)' : ''}</span>
             <span className="text-primary">{formatCurrency(typedQuote.total)}</span>
           </div>
         </div>

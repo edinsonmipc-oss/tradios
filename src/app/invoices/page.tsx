@@ -37,7 +37,7 @@ type Quote = {
   title: string
   items: any[]
   subtotal: number
-  gst: number
+  tax: number
   total: number
   clients?: { name: string }
 }

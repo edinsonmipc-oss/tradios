@@ -56,7 +56,7 @@ export type Quote = {
   title: string;
   items: QuoteItem[];
   subtotal: number;
-  gst: number;
+  tax: number;
   total: number;
   notes: string;
   status: 'draft' | 'sent' | 'accepted' | 'declined' | 'invoiced';

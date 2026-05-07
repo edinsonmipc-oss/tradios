@@ -24,7 +24,7 @@ export default async function QuotePrintPage({ params }: PageProps) {
 
   const typedQuote = quote as unknown as Quote
   const items = typedQuote.items || []
-  const gst = typedQuote.gst || 0
+  const gst = typedQuote.tax || 0
   const subtotal = typedQuote.subtotal || 0
 
   return (
