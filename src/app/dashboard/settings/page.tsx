@@ -100,6 +100,7 @@ export default function SettingsPage() {
         .single()
 
       if (profile) {
+        // Handle missing columns gracefully - profiles table may not have all columns yet
         setForm({
           business_name: profile.business_name || '',
           full_name: profile.full_name || '',
@@ -107,24 +108,24 @@ export default function SettingsPage() {
           phone: profile.phone || '',
           abn: profile.abn || '',
           address: profile.address || '',
-          website: profile.website || '',
-          business_description: profile.business_description || '',
-          services: profile.services || '',
-          years_in_business: profile.years_in_business || '',
-          license_number: profile.license_number || '',
-          insurance_details: profile.insurance_details || '',
-          instagram: profile.instagram || '',
-          facebook: profile.facebook || '',
-          tiktok: profile.tiktok || '',
-          service_area: profile.service_area || '',
-          default_hourly_rate: profile.default_hourly_rate?.toString() || '',
-          default_helper_rate: profile.default_helper_rate?.toString() || '',
-          default_deposit_pct: profile.default_deposit_pct?.toString() || '50',
-          quote_validity_days: profile.quote_validity_days?.toString() || '14',
-          public_liability_note: profile.public_liability_note || '',
-          google_review_link: profile.google_review_link || '',
-          email_sender: profile.email_sender || '',
-          email_signature: profile.email_signature || '',
+          website: (profile as any).website || '',
+          business_description: (profile as any).business_description || '',
+          services: (profile as any).services || '',
+          years_in_business: (profile as any).years_in_business || '',
+          license_number: (profile as any).license_number || '',
+          insurance_details: (profile as any).insurance_details || '',
+          instagram: (profile as any).instagram || '',
+          facebook: (profile as any).facebook || '',
+          tiktok: (profile as any).tiktok || '',
+          service_area: (profile as any).service_area || '',
+          default_hourly_rate: (profile as any).default_hourly_rate?.toString() || '',
+          default_helper_rate: (profile as any).default_helper_rate?.toString() || '',
+          default_deposit_pct: (profile as any).default_deposit_pct?.toString() || '50',
+          quote_validity_days: (profile as any).quote_validity_days?.toString() || '14',
+          public_liability_note: (profile as any).public_liability_note || '',
+          google_review_link: (profile as any).google_review_link || '',
+          email_sender: (profile as any).email_sender || '',
+          email_signature: (profile as any).email_signature || '',
         })
         if (profile.logo_url) setAvatarUrl(profile.logo_url)
       } else {
