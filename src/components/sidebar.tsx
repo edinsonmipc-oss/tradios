@@ -20,6 +20,10 @@ import {
   ClipboardList,
   Home,
   RefreshCw,
+  Shield,
+  BarChart3,
+  Package,
+  ShoppingCart,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -35,13 +39,17 @@ const navItems = [
   { href: '/clients', label: 'Clients', icon: Users },
   { href: '/quotes', label: 'Quotes', icon: FileText },
   { href: '/invoices', label: 'Invoices', icon: ClipboardList },
-  { href: '/visits', label: 'Visits', icon: CalendarDays },
   { href: '/payments', label: 'Payments', icon: DollarSign },
+  { href: '/visits', label: 'Visits', icon: CalendarDays },
+  { href: '/calendar', label: 'Calendar', icon: CalendarDays },
   // Operations
   { href: '/expenses', label: 'Expenses', icon: Receipt },
+  { href: '/inventory', label: 'Inventory', icon: Package },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/follow-ups', label: 'Follow-ups', icon: Bell },
   { href: '/gallery', label: 'Gallery', icon: Image },
+  { href: '/insurance', label: 'Insurance', icon: Shield },
+  { href: '/accounting', label: 'Accounting', icon: BarChart3 },
   // Account
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]

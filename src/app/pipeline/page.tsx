@@ -21,6 +21,9 @@ import {
   ChefHat,
   Home,
   RefreshCw,
+  CreditCard,
+  Image as ImageIcon,
+  MapPin,
 } from 'lucide-react'
 
 // ---------- TYPES ----------
@@ -167,6 +170,12 @@ export default function PipelinePage() {
           await supabase.from('visits').update({ status: 'completed' }).eq('client_id', clientId).eq('user_id', user.id)
           break
         }
+        case 'take_photos': {
+          const client = items.find(i => i.client.id === clientId)?.client
+          // Navigate to gallery with client pre-selected to take/upload photos
+          router.push(`/gallery?client=${clientId}&name=${encodeURIComponent(client?.name || '')}`)
+          return
+        }
         case 'create_quote': {
           router.push(`/quotes/new?client=${clientId}`)
           return // don't refetch, navigating away
@@ -187,7 +196,17 @@ export default function PipelinePage() {
           router.push(`/invoices?client=${clientId}`)
           return
         }
-        case 'sms_client': {
+        case 'stripe_payment': {
+          const client = items.find(i => i.client.id === clientId)?.client
+          const quote = items.find(i => i.client.id === clientId)?.quote
+          const amount = quote?.total || 0
+          // Open Stripe payment page or create payment link
+          if (amount > 0) {
+            window.open(`https://buy.stripe.com/test_cNifZi4Tx8CdeDZ2laeUU00?prefilled_email=${encodeURIComponent(client?.email || '')}&amount=${Math.round(amount * 100)}`, '_blank')
+          }
+          return
+        }
+        case 'send_sms': {
           const client = items.find(i => i.client.id === clientId)?.client
           if (client?.phone) {
             window.open(`sms:${client.phone}`, '_blank')
@@ -207,32 +226,36 @@ export default function PipelinePage() {
     switch (item.stage) {
       case 'new_lead':
         return [
-          { id: 'sms_client', label: '📱 Text Client', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
+          { id: 'send_sms', label: '📱 Text Client', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
           { id: 'schedule_visit', label: '📅 Schedule Visit', icon: CalendarDays, color: 'text-amber-400 border-amber-500/30 hover:bg-amber-500/10' },
         ]
       case 'visit_scheduled':
         return [
-          { id: 'visit_done', label: '✅ Mark Visit Done', icon: CheckCircle2, color: 'text-green-400 border-green-500/30 hover:bg-green-500/10' },
-          { id: 'sms_client', label: '📱 Text', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
+          { id: 'visit_done', label: '✅ Visit Done', icon: CheckCircle2, color: 'text-green-400 border-green-500/30 hover:bg-green-500/10' },
+          { id: 'take_photos', label: '📸 Take Photos', icon: ImageIcon, color: 'text-purple-400 border-purple-500/30 hover:bg-purple-500/10' },
+          { id: 'send_sms', label: '📱 Remind', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
         ]
       case 'visit_done':
         return [
+          { id: 'take_photos', label: '📸 Add Photos', icon: ImageIcon, color: 'text-purple-400 border-purple-500/30 hover:bg-purple-500/10' },
           { id: 'create_quote', label: '📄 Create Quote', icon: FileText, color: 'text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/10' },
-          { id: 'sms_client', label: '📱 Send Quote', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
+          { id: 'send_sms', label: '📱 Send Quote', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
         ]
       case 'quote_sent':
         return [
           { id: 'client_yes', label: '✅ Client Said Yes', icon: ThumbsUp, color: 'text-green-400 border-green-500/30 hover:bg-green-500/10' },
           { id: 'client_no', label: '❌ Client Said No', icon: ThumbsDown, color: 'text-red-400 border-red-500/30 hover:bg-red-500/10' },
+          { id: 'send_sms', label: '📱 Follow Up', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
         ]
       case 'won':
         return [
           { id: 'create_invoice', label: '💰 Create Invoice', icon: FileText, color: 'text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10' },
-          { id: 'sms_client', label: '📱 Follow Up', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
+          { id: 'stripe_payment', label: '💳 Take Payment', icon: CreditCard, color: 'text-green-400 border-green-500/30 hover:bg-green-500/10' },
+          { id: 'send_sms', label: '📱 Thank You', icon: Send, color: 'text-blue-400 border-blue-500/30 hover:bg-blue-500/10' },
         ]
       case 'lost':
         return [
-          { id: 'sms_client', label: '📱 Follow Up Later', icon: Send, color: 'text-gray-400 border-gray-500/30 hover:bg-gray-500/10' },
+          { id: 'send_sms', label: '📱 Follow Up Later', icon: Send, color: 'text-gray-400 border-gray-500/30 hover:bg-gray-500/10' },
         ]
     }
   }
