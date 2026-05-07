@@ -18,6 +18,8 @@ import {
   Bell,
   DollarSign,
   ClipboardList,
+  Home,
+  RefreshCw,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -26,6 +28,8 @@ import { useI18n } from '@/lib/i18n'
 import LanguageSwitcher from '@/components/language-switcher'
 
 const navItems = [
+  // Pipeline (main flow)
+  { href: '/pipeline', label: 'Pipeline', icon: RefreshCw },
   // Main
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/clients', label: 'Clients', icon: Users },

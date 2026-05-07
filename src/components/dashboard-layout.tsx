@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/sidebar'
-import { Menu } from 'lucide-react'
+import { Menu, Home } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 const AIAssistant = dynamic(() => import('@/components/ai-assistant'), { ssr: false })
@@ -56,19 +56,29 @@ function DashboardLayoutInner({
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 lg:ml-0">
         {/* Mobile header */}
-        <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-[#1e293b] bg-[#131c31] px-4 py-3 lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-[#1e293b] bg-[#131c31] px-3 py-2.5 lg:px-4 lg:py-3">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-1.5 text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[#1a2744] transition-colors"
+            className="rounded-lg p-1.5 text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[#1a2744] transition-colors lg:hidden"
             aria-label="Open menu"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </button>
+          {/* Home button - always visible */}
+          <a
+            href="/pipeline"
+            className="flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors px-2.5 py-1.5 text-sm font-medium text-primary"
+            title="Home - Pipeline"
+          >
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">Home</span>
+          </a>
+          <div className="h-5 w-px bg-[#1e293b] mx-1" />
           <a href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
             {logoUrl ? (
-              <img src={logoUrl} alt={businessName || 'Logo'} className="h-7 w-7 rounded-lg object-cover shrink-0" />
+              <img src={logoUrl} alt={businessName || 'Logo'} className="h-6 w-6 rounded-lg object-cover shrink-0" />
             ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600 shrink-0">
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-600 shrink-0">
                 <span className="text-xs font-bold text-white">{(businessName || 'T')[0]}</span>
               </div>
             )}
