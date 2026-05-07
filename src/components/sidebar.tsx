@@ -8,24 +8,16 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Calendar,
+  CalendarDays,
   Image,
   MessageSquare,
   Settings,
   LogOut,
   X,
   Receipt,
-  TrendingUp,
-  Shield,
   Bell,
   DollarSign,
-  Package,
-  CalendarDays,
-  FileSpreadsheet,
-  MessageCircle,
   ClipboardList,
-  Repeat,
-  Mail,
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -34,25 +26,20 @@ import { useI18n } from '@/lib/i18n'
 import LanguageSwitcher from '@/components/language-switcher'
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', i18nKey: 'nav.dashboard', icon: LayoutDashboard },
-  { href: '/clients', label: 'Clients', i18nKey: 'nav.clients', icon: Users },
-  { href: '/quotes', label: 'Quotes', i18nKey: 'nav.quotes', icon: FileText },
-  { href: '/invoices', label: 'Invoices', i18nKey: 'nav.invoices', icon: FileSpreadsheet },
-  { href: '/payments', label: 'Payments', i18nKey: 'nav.payments', icon: DollarSign },
-  { href: '/visits', label: 'Visits', i18nKey: 'nav.visits', icon: Calendar },
-  { href: '/calendar', label: 'Calendar', i18nKey: 'nav.calendar', icon: CalendarDays },
-  { href: '/client-message', label: 'Client Messages', i18nKey: 'nav.clientMessages', icon: MessageCircle },
-  { href: '/quote-builder', label: 'Quote Builder', i18nKey: 'nav.quoteBuilder', icon: ClipboardList },
-  { href: '/follow-ups', label: 'Follow-Ups', i18nKey: 'nav.followUps', icon: Bell },
-  { href: '/follow-up-system', label: 'Follow-Up System', i18nKey: 'nav.followUpSystem', icon: Repeat },
-  { href: '/expenses', label: 'Expenses', i18nKey: 'nav.expenses', icon: Receipt },
-  { href: '/inventory', label: 'Inventory', i18nKey: 'nav.inventory', icon: Package },
-  { href: '/accounting', label: 'Accounting', i18nKey: 'nav.accounting', icon: TrendingUp },
-  { href: '/insurance', label: 'Insurance', i18nKey: 'nav.insurance', icon: Shield },
-  { href: '/gallery', label: 'Gallery', i18nKey: 'nav.gallery', icon: Image },
-  { href: '/messages', label: 'Messages', i18nKey: 'nav.messages', icon: MessageSquare },
-  { href: '/emails', label: 'Emails', i18nKey: 'nav.emails', icon: Mail },
-  { href: '/dashboard/settings', label: 'Settings', i18nKey: 'nav.settings', icon: Settings },
+  // Main
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/clients', label: 'Clients', icon: Users },
+  { href: '/quotes', label: 'Quotes', icon: FileText },
+  { href: '/invoices', label: 'Invoices', icon: ClipboardList },
+  { href: '/visits', label: 'Visits', icon: CalendarDays },
+  { href: '/payments', label: 'Payments', icon: DollarSign },
+  // Operations
+  { href: '/expenses', label: 'Expenses', icon: Receipt },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/follow-ups', label: 'Follow-ups', icon: Bell },
+  { href: '/gallery', label: 'Gallery', icon: Image },
+  // Account
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]
 
 interface SidebarProps {
@@ -78,125 +65,103 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     return () => { document.body.style.overflow = '' }
   }, [open])
 
-  // Close on ESC
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape' && open) onClose()
-  }, [open, onClose])
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [handleKeyDown])
-
-  // Close on route change (mobile)
-  useEffect(() => {
-    // Use pathname to close on mobile after nav
-    if (open && window.innerWidth < 1024) {
-      onClose()
-    }
-  }, [pathname])
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('business_name, logo_url')
-        .eq('id', user.id)
-        .single()
-      if (profile) {
-        if (profile.business_name) setBusinessName(profile.business_name)
-        if (profile.logo_url) setLogoUrl(profile.logo_url)
-      }
-    }
-    fetchProfile()
-  }, [])
-
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    toast.success(t('nav.signOut') + ' ✓')
-    router.push('/auth/login')
+    try {
+      await supabase.auth.signOut()
+      toast.success('Signed out')
+      router.push('/auth/login')
+    } catch {
+      toast.error('Failed to sign out')
+    }
   }
+
+  const fetchProfile = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('business_name, logo_url')
+      .eq('id', user.id)
+      .single()
+    if (profile) {
+      if (profile.business_name) setBusinessName(profile.business_name)
+      if (profile.logo_url) setLogoUrl(profile.logo_url)
+    }
+  }, [supabase])
+
+  useEffect(() => { fetchProfile() }, [fetchProfile])
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Mobile overlay */}
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity duration-300 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={onClose}
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 flex h-full flex-col bg-card border-r border-border transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:z-auto',
-          'w-[82vw] max-w-[320px] min-w-[280px]',
-          'pb-safe',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-border bg-card transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        {/* Logo + Close */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-border shrink-0">
-          <Link href="/dashboard" className="flex items-center gap-2.5 min-w-0" onClick={onClose}>
+        {/* Logo */}
+        <div className="flex h-16 items-center justify-between border-b border-border px-5">
+          <Link href="/dashboard" className="flex items-center gap-3" onClick={onClose}>
             {logoUrl ? (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden shrink-0">
-                <img src={logoUrl} alt={businessName || 'Logo'} className="h-full w-full object-cover" />
-              </div>
+              <img src={logoUrl} alt="Logo" className="h-8 w-8 rounded-lg object-cover" />
             ) : (
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-teal-700 shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <span className="text-sm font-bold text-white">T</span>
               </div>
             )}
-            <span className="text-sm font-bold text-foreground truncate">
-              {businessName || 'Tradios'}
-            </span>
+            <div>
+              <div className="text-sm font-bold text-foreground">{businessName || 'Tradios'}</div>
+              <div className="text-[10px] text-muted">Tradie OS</div>
+            </div>
           </Link>
-          <button
-            onClick={onClose}
-            className="rounded-lg p-1.5 text-muted hover:text-foreground hover:bg-card-hover transition-colors lg:hidden shrink-0"
-            aria-label="Close menu"
-          >
+          <button onClick={onClose} className="rounded-lg p-1.5 text-muted hover:bg-muted/20 hover:text-foreground lg:hidden">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto px-2 py-3 space-y-0.5 scrollbar-thin">
+        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            const Icon = item.icon
+            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/')
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
                 className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150',
+                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-teal-500/15 text-teal-400 border-l-[3px] border-l-teal-500 -ml-px'
-                    : 'text-muted hover:text-foreground hover:bg-card-hover border-l-[3px] border-l-transparent -ml-px'
+                    ? 'bg-primary text-white'
+                    : 'text-muted hover:bg-muted/20 hover:text-foreground'
                 )}
               >
-                <item.icon className="h-[18px] w-[18px] shrink-0" />
-                <span className="truncate">{t(item.i18nKey)}</span>
+                <Icon className="h-4 w-4" />
+                {item.label}
               </Link>
             )
           })}
         </nav>
 
-        {/* Language + Sign Out */}
-        <div className="border-t border-border px-2 py-2 space-y-1 shrink-0">
+        {/* Footer */}
+        <div className="border-t border-border p-3 space-y-2">
+          <LanguageSwitcher />
           <button
             onClick={handleSignOut}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-red-500/10 hover:text-red-500"
           >
-            <LogOut className="h-[18px] w-[18px] shrink-0" />
-            {t('nav.signOut')}
+            <LogOut className="h-4 w-4" />
+            Sign Out
           </button>
-          <div className="flex items-center justify-between px-1 py-1">
-            <LanguageSwitcher />
-          </div>
         </div>
       </aside>
     </>
