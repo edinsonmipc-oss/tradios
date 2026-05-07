@@ -184,11 +184,26 @@ export default function SettingsPage() {
       phone: form.phone || null,
       abn: form.abn || null,
       address: form.address || null,
+      website: form.website || null,
+      business_description: form.business_description || null,
+      services: form.services || null,
+      years_in_business: form.years_in_business ? parseInt(form.years_in_business) : null,
+      license_number: form.license_number || null,
+      insurance_details: form.insurance_details || null,
+      instagram: form.instagram || null,
+      facebook: form.facebook || null,
+      tiktok: form.tiktok || null,
+      service_area: form.service_area || null,
+      default_hourly_rate: form.default_hourly_rate ? parseFloat(form.default_hourly_rate) : null,
+      default_helper_rate: form.default_helper_rate ? parseFloat(form.default_helper_rate) : null,
+      default_deposit_pct: form.default_deposit_pct ? parseInt(form.default_deposit_pct) : 50,
+      quote_validity_days: form.quote_validity_days ? parseInt(form.quote_validity_days) : 14,
+      public_liability_note: form.public_liability_note || null,
+      google_review_link: form.google_review_link || null,
+      email_sender: form.email_sender || null,
+      email_signature: form.email_signature || null,
       updated_at: new Date().toISOString(),
     })
-
-    // Also save extended settings to a separate json column if available
-    // (profiles table has limited columns - extended fields stored locally)
 
     setLoading(false)
     if (error) {
