@@ -129,7 +129,7 @@ function AddInvoiceModal({
         supabase.from('clients').select('id, name').eq('user_id', user.id).order('name'),
         supabase
           .from('quotes')
-          .select('id, quote_number, title, items, subtotal, gst, total, clients(name)')
+          .select('id, quote_number, title, items, subtotal, tax, total, clients(name)')
           .eq('user_id', user.id)
           .in('status', ['accepted', 'sent'])
           .order('created_at', { ascending: false }),

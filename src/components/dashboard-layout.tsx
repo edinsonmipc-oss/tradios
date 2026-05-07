@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { Menu } from 'lucide-react'
+import dynamic from 'next/dynamic'
+
+const AIAssistant = dynamic(() => import('@/components/ai-assistant'), { ssr: false })
 import { createClient } from '@/lib/supabase/client'
 import { I18nProvider } from '@/lib/i18n'
 import LanguageSwitcher from '@/components/language-switcher'
@@ -79,6 +82,7 @@ function DashboardLayoutInner({
           {children}
         </main>
       </div>
+      <AIAssistant />
     </div>
   )
 }
