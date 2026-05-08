@@ -13,8 +13,6 @@ import {
   FileText,
   Users,
   CalendarDays,
-  Sparkles,
-  Zap,
   Wallet,
   Settings,
   LogOut,
@@ -63,7 +61,6 @@ const navSections = [
   {
     title: 'AI & Tools',
     items: [
-      { href: '/ai-tools', label: 'AI Tools', icon: Sparkles },
       { href: '/messages', label: 'Messages', icon: MessageSquare },
       { href: '/follow-ups', label: 'Follow-ups', icon: Bell },
     ],
