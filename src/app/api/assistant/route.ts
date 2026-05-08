@@ -61,6 +61,8 @@ const OPENROUTER_MODELS = [
   'google/gemini-2.0-flash-001',
   'qwen/qwen2.5-vl-72b-instruct:free',
   'google/gemma-3-12b-it:free',
+  'mistralai/mistral-7b-instruct:free',
+  'microsoft/phi-3-mini-128k-instruct:free',
 ]
 
 type ChatMessage = { role: string; content: string }

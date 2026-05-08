@@ -96,7 +96,7 @@ export default function AIAssistant() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 flex w-[380px] max-w-[calc(100vw-48px)] flex-col rounded-2xl border border-border bg-card shadow-2xl animate-in slide-in-from-bottom-4">
+        <div className="fixed bottom-24 right-6 z-50 flex w-[380px] max-w-[calc(100vw-48px)] flex-col rounded-2xl border border-border bg-bg-secondary shadow-2xl animate-in slide-in-from-bottom-4">
           {/* Header */}
           <div className="flex items-center gap-3 border-b border-border px-5 py-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
