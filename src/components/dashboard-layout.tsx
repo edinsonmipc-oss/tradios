@@ -1,14 +1,159 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Sidebar } from '@/components/sidebar'
-import { Menu, Home } from 'lucide-react'
+import { CommandPalette } from '@/components/command-palette'
+import { Menu, Home, Bell, Plus } from 'lucide-react'
+import Link from 'next/link'
 import dynamic from 'next/dynamic'
-
-const AIAssistant = dynamic(() => import('@/components/ai-assistant'), { ssr: false })
+import { usePathname } from 'next/navigation'
+import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { I18nProvider } from '@/lib/i18n'
-import LanguageSwitcher from '@/components/language-switcher'
+
+const AIAssistant = dynamic(() => import('@/components/ai-assistant'), {
+  ssr: false,
+})
+
+const mobileNavItems = [
+  { href: '/pipeline', label: 'Jobs', icon: Home },
+  { href: '/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/clients', label: 'Clients', icon: Home },
+  { href: '/quotes', label: 'Quotes', icon: Home },
+  { href: '/calendar', label: 'Calendar', icon: Home },
+]
+
+function getPageTitle(pathname: string): string {
+  const titles: Record<string, string> = {
+    '/pipeline': 'Pipeline',
+    '/dashboard': 'Dashboard',
+    '/clients': 'Clients',
+    '/quotes': 'Quotes',
+    '/invoices': 'Invoices',
+    '/calendar': 'Calendar',
+    '/payments': 'Payments',
+    '/expenses': 'Expenses',
+    '/inventory': 'Inventory',
+    '/insurance': 'Insurance',
+    '/gallery': 'Gallery',
+    '/messages': 'Messages',
+    '/follow-ups': 'Follow-ups',
+    '/ai-tools': 'AI Tools',
+    '/settings': 'Settings',
+  }
+  return titles[pathname] || 'Tradios'
+}
+
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [cmdkOpen, setCmdkOpen] = useState(false)
+  const [businessName, setBusinessName] = useState('Tradios')
+  const pathname = usePathname()
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user?.email) {
+        supabase
+          .from('profiles')
+          .select('business_name, full_name')
+          .eq('id', user.id)
+          .single()
+          .then(({ data }) => {
+            if (data?.business_name) setBusinessName(data.business_name)
+            else if (data?.full_name) setBusinessName(data.full_name)
+            else setBusinessName(user.email!.split('@')[0])
+          })
+      }
+    })
+  }, [])
+
+  // CMD+K keyboard shortcut
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setCmdkOpen((prev) => !prev)
+      }
+      if (e.key === 'Escape') {
+        setCmdkOpen(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    const handleOpen = () => setCmdkOpen(true)
+    window.addEventListener('open-cmdk', handleOpen)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('open-cmdk', handleOpen)
+    }
+  }, [])
+
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [pathname])
+
+  return (
+    <div className="flex min-h-screen bg-bg">
+      {/* Sidebar */}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col md:ml-[240px] min-h-screen">
+        {/* Top bar (mobile only) */}
+        <header className="sticky top-0 z-30 md:hidden flex items-center justify-between px-4 py-3 bg-bg-secondary border-b border-border">
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="btn btn-ghost btn-icon"
+            aria-label="Open menu"
+          >
+            <Menu size={20} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-accent flex items-center justify-center text-white font-bold text-xs">
+              T
+            </div>
+            <span className="font-semibold text-sm">{businessName}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <button className="btn btn-ghost btn-icon" aria-label="Notifications">
+              <Bell size={18} />
+            </button>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="flex-1">{children}</main>
+      </div>
+
+      {/* Mobile Bottom Nav */}
+      <nav className="mobile-nav">
+        <div className="mobile-nav-items">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon
+            const active = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn('mobile-nav-item', active && 'active')}
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+
+      {/* Command Palette */}
+      {cmdkOpen && <CommandPalette onClose={() => setCmdkOpen(false)} />}
+
+      {/* AI Assistant */}
+      <AIAssistant />
+    </div>
+  )
+}
 
 export default function DashboardLayout({
   children,
@@ -19,80 +164,5 @@ export default function DashboardLayout({
     <I18nProvider>
       <DashboardLayoutInner>{children}</DashboardLayoutInner>
     </I18nProvider>
-  )
-}
-
-function DashboardLayoutInner({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  const supabase = createClient()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [businessName, setBusinessName] = useState<string | null>(null)
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('business_name, logo_url')
-        .eq('id', user.id)
-        .single()
-      if (profile) {
-        if (profile.business_name) setBusinessName(profile.business_name)
-        if (profile.logo_url) setLogoUrl(profile.logo_url)
-      }
-    }
-    fetchProfile()
-  }, [])
-
-  return (
-    <div className="flex min-h-screen bg-[#0a0f1c] overflow-x-hidden">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0 lg:ml-0">
-        {/* Mobile header */}
-        <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-[#1e293b] bg-[#131c31] px-3 py-2.5 lg:px-4 lg:py-3">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="rounded-lg p-1.5 text-[#94a3b8] hover:text-[#f1f5f9] hover:bg-[#1a2744] transition-colors lg:hidden"
-            aria-label="Open menu"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          {/* Home button - always visible */}
-          <a
-            href="/pipeline"
-            className="flex items-center gap-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors px-2.5 py-1.5 text-sm font-medium text-primary"
-            title="Home - Pipeline"
-          >
-            <Home className="h-4 w-4" />
-            <span className="hidden sm:inline">Home</span>
-          </a>
-          <div className="h-5 w-px bg-[#1e293b] mx-1" />
-          <a href="/dashboard" className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0">
-            {logoUrl ? (
-              <img src={logoUrl} alt={businessName || 'Logo'} className="h-6 w-6 rounded-lg object-cover shrink-0" />
-            ) : (
-              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-600 shrink-0">
-                <span className="text-xs font-bold text-white">{(businessName || 'T')[0]}</span>
-              </div>
-            )}
-            <span className="text-sm font-bold text-[#f1f5f9] truncate">{businessName || 'Tradios'}</span>
-          </a>
-          <div className="flex-1" />
-          <LanguageSwitcher />
-        </header>
-
-        <main className="flex-1 overflow-x-hidden p-4 md:p-5 lg:p-6">
-          {children}
-        </main>
-      </div>
-      <AIAssistant />
-    </div>
   )
 }
