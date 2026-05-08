@@ -2,6 +2,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Badge, statusBadgeVariant } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import ClientPipeline from '@/components/client-pipeline'
+import type { PipelineState } from '@/components/client-pipeline'
 import Link from 'next/link'
 import {
   Phone,
@@ -35,6 +37,7 @@ export default async function ClientDetailPage({ params }: PageProps) {
 
   if (!client) notFound()
 
+  // ── Fetch related data ──
   const { data: quotes } = await supabase
     .from('quotes')
     .select('*')
@@ -53,6 +56,46 @@ export default async function ClientDetailPage({ params }: PageProps) {
     .eq('client_id', id)
     .order('created_at', { ascending: false })
     .limit(10)
+
+  const { data: followUps } = await supabase
+    .from('follow_ups')
+    .select('*')
+    .eq('client_id', id)
+    .order('created_at', { ascending: false })
+
+  // ── Auto-detect pipeline state from existing data ──
+  const pipeline: PipelineState = {
+    contacted: (messages && messages.length > 0) || false,
+    contacted_date: messages?.[0]?.sent_at || messages?.[0]?.created_at || null,
+    visit_done: (visits && visits.some(v => v.status === 'completed')) || false,
+    visit_date: visits?.find(v => v.status === 'completed')?.scheduled_date || null,
+    quote_sent: (quotes && quotes.some(q => ['sent', 'accepted', 'declined'].includes(q.status))) || false,
+    quote_date: quotes?.find(q => ['sent', 'accepted'].includes(q.status))?.created_at || null,
+    won: (quotes && quotes.some(q => q.status === 'accepted')) || false,
+    won_date: quotes?.find(q => q.status === 'accepted')?.created_at || null,
+  }
+
+  // Also check follow_ups for contact (calls/emails)
+  if (!pipeline.contacted && followUps) {
+    const contactFups = followUps.filter(f =>
+      ['call', 'email'].includes(f.category) && f.status === 'completed'
+    )
+    if (contactFups.length > 0) {
+      pipeline.contacted = true
+      pipeline.contacted_date = contactFups[0].completed_at || contactFups[0].created_at
+    }
+  }
+  // Check follow_ups for won
+  if (!pipeline.won && followUps) {
+    const wonFups = followUps.filter(f =>
+      ['payment', 'follow_up'].includes(f.category) &&
+      f.title?.toLowerCase().includes('won') && f.status === 'completed'
+    )
+    if (wonFups.length > 0) {
+      pipeline.won = true
+      pipeline.won_date = wonFups[0].completed_at || wonFups[0].created_at
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -79,41 +122,47 @@ export default async function ClientDetailPage({ params }: PageProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Info Panel */}
-        <div className="rounded-xl border border-border bg-card p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <Info className="h-5 w-5 text-primary" />
-            <h2 className="text-base font-semibold text-foreground">Contact Info</h2>
-          </div>
-          <div className="space-y-3">
-            {client.phone && (
-              <div className="flex items-center gap-2 text-sm text-muted">
-                <Phone className="h-4 w-4 text-primary/70" />
-                <span>{client.phone}</span>
-              </div>
-            )}
-            {client.email && (
-              <div className="flex items-center gap-2 text-sm text-muted">
-                <Mail className="h-4 w-4 text-primary/70" />
-                <span>{client.email}</span>
-              </div>
-            )}
-            {client.address && (
-              <div className="flex items-start gap-2 text-sm text-muted">
-                <MapPin className="mt-0.5 h-4 w-4 text-primary/70" />
-                <span>{client.address}</span>
-              </div>
-            )}
-          </div>
-          {client.notes && (
-            <div className="mt-4 border-t border-border pt-4">
-              <h3 className="mb-2 text-sm font-medium text-foreground">Notes</h3>
-              <p className="text-sm text-muted whitespace-pre-wrap">{client.notes}</p>
+        {/* Pipeline + Info Panel */}
+        <div className="space-y-6">
+          {/* Pipeline */}
+          <ClientPipeline clientId={client.id} initial={pipeline} />
+
+          {/* Info Panel */}
+          <div className="rounded-xl border border-border bg-card p-5">
+            <div className="mb-4 flex items-center gap-2">
+              <Info className="h-5 w-5 text-primary" />
+              <h2 className="text-base font-semibold text-foreground">Contact Info</h2>
             </div>
-          )}
+            <div className="space-y-3">
+              {client.phone && (
+                <div className="flex items-center gap-2 text-sm text-muted">
+                  <Phone className="h-4 w-4 text-primary/70" />
+                  <span>{client.phone}</span>
+                </div>
+              )}
+              {client.email && (
+                <div className="flex items-center gap-2 text-sm text-muted">
+                  <Mail className="h-4 w-4 text-primary/70" />
+                  <span>{client.email}</span>
+                </div>
+              )}
+              {client.address && (
+                <div className="flex items-start gap-2 text-sm text-muted">
+                  <MapPin className="mt-0.5 h-4 w-4 text-primary/70" />
+                  <span>{client.address}</span>
+                </div>
+              )}
+            </div>
+            {client.notes && (
+              <div className="mt-4 border-t border-border pt-4">
+                <h3 className="mb-2 text-sm font-medium text-foreground">Notes</h3>
+                <p className="text-sm text-muted whitespace-pre-wrap">{client.notes}</p>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Quotes Tab */}
+        {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Quotes */}
           <div className="rounded-xl border border-border bg-card p-5">
