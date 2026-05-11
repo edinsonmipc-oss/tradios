@@ -39,6 +39,11 @@
   --color-info: #06b6d4;
   --color-info-soft: rgba(6, 182, 212, 0.1);
 
+  /* ── Card colors (legacy) — mapped to surface for compatibility */
+  --color-card: var(--color-surface);
+  --color-card-hover: var(--color-surface-hover);
+  --color-card-border: var(--color-border);
+
   /* ── Premium Surfaces ── */
   --color-glass: rgba(255, 255, 255, 0.03);
   --color-glass-hover: rgba(255, 255, 255, 0.06);

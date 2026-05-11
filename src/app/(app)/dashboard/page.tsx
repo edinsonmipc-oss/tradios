@@ -336,7 +336,7 @@ export default async function DashboardPage() {
                 <span className="text-sm text-fg-secondary">Schedule Visit</span>
               </Link>
               <Link
-                href="/invoice/new"
+                href="/invoices"
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-glass-hover transition-colors"
               >
                 <div className="w-8 h-8 rounded-lg bg-info-soft text-info flex items-center justify-center">
