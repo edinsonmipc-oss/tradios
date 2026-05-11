@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.tradeos.app',
-  appName: 'Tradios',
+  appId: 'com.tradiesitepilot.app',
+  appName: 'Tradie SitePilot',
   webDir: 'www',
   server: {
     // For production: point to your deployed Next.js app

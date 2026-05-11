@@ -110,7 +110,7 @@ export function Sidebar({
   const handleSignOut = useCallback(async () => {
     const supabase = createClient()
     await supabase.auth.signOut()
-    router.push('/auth')
+    router.push('/auth/login')
     toast.success('Signed out')
   }, [router])
 
@@ -125,7 +125,7 @@ export function Sidebar({
       <div className="sidebar-header">
         <div className="sidebar-logo">T</div>
         <div>
-          <div className="sidebar-brand">Tradios</div>
+          <div className="sidebar-brand">Tradie SitePilot</div>
           <div className="text-[11px] text-fg-tertiary mt-[-2px]">
             Trade Business OS
           </div>
@@ -142,7 +142,7 @@ export function Sidebar({
         }}
       >
         <Search size={14} />
-        <span>Search Tradios...</span>
+        <span>Search Tradie SitePilot...</span>
         <kbd>⌘K</kbd>
       </div>
 

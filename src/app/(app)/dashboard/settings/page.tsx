@@ -614,7 +614,7 @@ export default function SettingsPage() {
         <CardContent>
           <div className="space-y-4">
             <p className="text-xs text-muted/70">
-              Configura el remitente y la firma para los correos que envías desde Tradios.
+              Configura el remitente y la firma para los correos que envías desde Tradie SitePilot.
               Necesitas agregar <code className="rounded bg-card-border px-1.5 py-0.5 text-[11px]">RESEND_API_KEY</code> en las variables de entorno de Render para habilitar el envío real.
             </p>
             <Input

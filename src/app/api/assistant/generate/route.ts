@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'HTTP-Referer': 'https://tradios.onrender.com',
-          'X-Title': 'Tradios',
+          'X-Title': 'Tradie SitePilot',
         },
         body: JSON.stringify({
           model: AI_MODEL,
@@ -81,7 +81,7 @@ The response should be ready to send directly to the client. No extra commentary
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'HTTP-Referer': 'https://tradios.onrender.com',
-          'X-Title': 'Tradios',
+          'X-Title': 'Tradie SitePilot',
         },
         body: JSON.stringify({
           model: AI_MODEL,

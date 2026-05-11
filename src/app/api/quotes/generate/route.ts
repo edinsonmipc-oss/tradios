@@ -12,7 +12,7 @@ async function generateWithOpenRouter(clientName: string, title: string) {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
       'HTTP-Referer': 'https://tradios.onrender.com',
-      'X-Title': 'Tradios',
+      'X-Title': 'Tradie SitePilot',
     },
     body: JSON.stringify({
       model: AI_MODEL,

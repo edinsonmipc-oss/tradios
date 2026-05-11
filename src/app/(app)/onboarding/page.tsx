@@ -46,7 +46,7 @@ type ClientData = {
 
 const STEP_HEADLINES = [
   {
-    title: 'Welcome to Tradios!',
+    title: 'Welcome to Tradie SitePilot!',
     subtitle: "Let's get your trade business set up in no time.",
   },
   {
@@ -59,7 +59,7 @@ const STEP_HEADLINES = [
   },
   {
     title: "You're all set!",
-    subtitle: 'Your Tradios account is ready to go. Time to get tradie-ing!',
+    subtitle: 'Your Tradie SitePilot account is ready to go. Time to get tradie-ing!',
   },
 ]
 
@@ -192,7 +192,7 @@ export default function OnboardingPage() {
         }
       }
 
-      toast.success('Welcome to Tradios! 🎉')
+      toast.success('Welcome to Tradie SitePilot! 🎉')
       router.push('/dashboard')
     } catch (err) {
       console.error('Onboarding error:', err)
@@ -291,7 +291,7 @@ export default function OnboardingPage() {
 
       <div className="mx-auto max-w-md space-y-4">
         <p className="text-sm leading-relaxed text-muted">
-          Tradios is the all-in-one management app built for Australian tradies.
+          Tradie SitePilot is the all-in-one management app built for Australian tradies.
           Whether you&apos;re an electrician, plumber, builder, or chippy —
           we&apos;ve got your back, mate.
         </p>

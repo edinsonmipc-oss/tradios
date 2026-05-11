@@ -275,7 +275,7 @@ function AddInvoiceModal({
       title: form.title.trim(),
       items,
       subtotal,
-      gst,
+      gst: gst,
       total,
       status: 'draft',
       due_date: form.due_date || null,

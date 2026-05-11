@@ -5,10 +5,9 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY
 
-const APP_KNOWLEDGE = `You are Tradios AI — an intelligent assistant for an Australian tradie (tradesperson) management app. You answer ANY question the user asks, not just about the app. Be like ChatGPT: knowledgeable, helpful, and conversational. Respond in the user's language (English or Spanish).
+const APP_KNOWLEDGE = `You are Tradie SitePilot AI — an intelligent assistant for an Australian tradie (tradesperson) management app. You answer ANY question the user asks, not just about the app. Be like ChatGPT: knowledgeable, helpful, and conversational. Respond in the user's language (English or Spanish).
 
-ABOUT THE APP:
-Tradios is an all-in-one management app for Australian tradespeople (tradies). Built with Next.js + Supabase.
+Tradie SitePilot is an all-in-one management app for Australian tradespeople (tradies). Built with Next.js + Supabase.
 
 PAGES & FEATURES:
 - /dashboard — Overview with stats, recent activity, quick actions
@@ -110,7 +109,7 @@ async function callDeepSeekOpenRouter(messages: ChatMessage[]): Promise<string |
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'HTTP-Referer': 'https://tradios.onrender.com',
-          'X-Title': 'Tradios AI',
+          'X-Title': 'Tradie SitePilot AI',
         },
         body: JSON.stringify({
           model,
@@ -185,7 +184,7 @@ async function callOpenRouter(messages: ChatMessage[]): Promise<string | null> {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'HTTP-Referer': 'https://tradios.onrender.com',
-          'X-Title': 'Tradios AI',
+          'X-Title': 'Tradie SitePilot AI',
         },
         body: JSON.stringify({
           model,
@@ -247,7 +246,7 @@ export async function POST(request: NextRequest) {
     let fallback = ''
 
     if (lastMsg.includes('quote') || lastMsg.includes('cotización') || lastMsg.includes('presupuesto')) {
-      fallback = 'To create a quote in Tradios: go to **Quotes → New Quote**, select a client, add labour items with rates, and the system auto-calculates subtotal, GST (10%), and total. You can also use the **AI Generate** button to auto-generate quote items from a description. For Australian tradies, quotes typically include: description of work, quantity, rate per hour ($60-$120/hr typical in Melbourne), and GST.'
+      fallback = 'To create a quote in Tradie SitePilot: go to **Quotes → New Quote**, select a client, add labour items with rates, and the system auto-calculates subtotal, GST (10%), and total. You can also use the **AI Generate** button to auto-generate quote items from a description. For Australian tradies, quotes typically include: description of work, quantity, rate per hour ($60-$120/hr typical in Melbourne), and GST.'
     } else if (lastMsg.includes('invoice') || lastMsg.includes('factura')) {
       fallback = 'Go to **Invoices** to view all invoices. Click **New Invoice** to create one — you can convert an **Accepted** quote into an invoice, or create from scratch. GST is auto-calculated at 10% for Australian compliance. Once paid, mark it as paid and it updates your accounting.'
     } else if (lastMsg.includes('client') || lastMsg.includes('cliente')) {
@@ -257,11 +256,11 @@ export async function POST(request: NextRequest) {
     } else if (lastMsg.includes('expense') || lastMsg.includes('gasto')) {
       fallback = 'Track expenses under **Expenses**. Categories: Materials, Tools, Fuel, Vehicle, Insurance, Office, Subcontractor, Other. You can upload receipt photos. Expenses feed into your accounting overview.'
     } else if (lastMsg.includes('hola') || lastMsg.includes('hello') || lastMsg.includes('g\'day') || lastMsg.includes('hi')) {
-      fallback = "👋 G'day! I'm Tradios AI — your intelligent business assistant. I can help you:\n\n📋 Navigate the app (quotes, invoices, clients)\n💰 Manage your tradie business (GST, pricing, expenses)\n🤔 Answer general questions (like ChatGPT)\n\nWhat can I help you with today?"
+      fallback = "👋 G'day! I'm Tradie SitePilot AI — your intelligent business assistant. I can help you:\n\n📋 Navigate the app (quotes, invoices, clients)\n💰 Manage your tradie business (GST, pricing, expenses)\n🤔 Answer general questions (like ChatGPT)\n\nWhat can I help you with today?"
     } else if (lastMsg.includes('gst') || lastMsg.includes('tax') || lastMsg.includes('tax') || lastMsg.includes('impuesto') || lastMsg.includes('iva')) {
-      fallback = 'Australian GST (Goods and Services Tax) is **10%**. In Tradios: quotes and invoices auto-calculate GST. For expenses, you can track GST amounts for tax deductions. Key things to know:\n\n• GST-registered businesses charge 10% on top of their prices\n• You claim back the GST you pay on business expenses (input tax credits)\n• ABN is required, and if your turnover is $75k+, GST registration is mandatory\n• BAS (Business Activity Statement) is usually submitted quarterly'
+      fallback = 'Australian GST (Goods and Services Tax) is **10%**. In Tradie SitePilot: quotes and invoices auto-calculate GST. For expenses, you can track GST amounts for tax deductions. Key things to know:\n\n• GST-registered businesses charge 10% on top of their prices\n• You claim back the GST you pay on business expenses (input tax credits)\n• ABN is required, and if your turnover is $75k+, GST registration is mandatory\n• BAS (Business Activity Statement) is usually submitted quarterly'
     } else {
-      fallback = `I'm Tradios AI, your assistant. I can help with:\n\n**App features:** quotes, invoices, clients, visits, expenses, payments, calendar, gallery, insurance, inventory\n**Business:** Australian GST (10%), tradie pricing, ABN, BAS, marketing\n**General:** Ask me anything like ChatGPT!\n\nTry: "How do I create a quote?" or "What's the difference between a quote and an invoice?"`
+      fallback = `I'm Tradie SitePilot AI, your assistant. I can help with:\n\n**App features:** quotes, invoices, clients, visits, expenses, payments, calendar, gallery, insurance, inventory\n**Business:** Australian GST (10%), tradie pricing, ABN, BAS, marketing\n**General:** Ask me anything like ChatGPT!\n\nTry: "How do I create a quote?" or "What's the difference between a quote and an invoice?"`
     }
 
     return NextResponse.json({ response: fallback, model: 'offline' })

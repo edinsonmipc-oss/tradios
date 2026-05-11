@@ -153,7 +153,7 @@ export default function LoginPage() {
           <Hammer className="h-8 w-8 text-white" />
         </div>
         <h1 className="text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-          Tradios
+          Tradie SitePilot
         </h1>
         <p className="mt-2 text-lg font-medium gradient-text">
           La App para Tradies Australianos

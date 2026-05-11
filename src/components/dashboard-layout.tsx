@@ -47,13 +47,13 @@ function getPageTitle(pathname: string): string {
     '/ai-tools': 'AI Tools',
     '/settings': 'Settings',
   }
-  return titles[pathname] || 'Tradios'
+  return titles[pathname] || 'Tradie SitePilot'
 }
 
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [cmdkOpen, setCmdkOpen] = useState(false)
-  const [businessName, setBusinessName] = useState('Tradios')
+  const [businessName, setBusinessName] = useState('Tradie SitePilot')
   const pathname = usePathname()
   const router = useRouter()
 

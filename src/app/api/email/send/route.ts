@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    const senderName = profile?.business_name || profile?.full_name || user.email?.split('@')[0] || 'Tradios'
+    const senderName = profile?.business_name || profile?.full_name || user.email?.split('@')[0] || 'Tradie SitePilot'
 
     // Try to send via Resend if API key is available
     const resendApiKey = process.env.RESEND_API_KEY
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     if (resendApiKey) {
       try {
         const resend = new Resend(resendApiKey)
-        const senderEmail = profile?.email_sender || 'tradios@midashboard.xyz'
+        const senderEmail = profile?.email_sender || 'sitepilot@midashboard.xyz'
         const signature = profile?.email_signature || ''
 
         const htmlBody = signature

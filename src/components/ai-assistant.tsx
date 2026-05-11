@@ -12,7 +12,7 @@ type ChatMessage = {
 export default function AIAssistant() {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'assistant', content: "👋 G'day! I'm Tradios AI. Ask me anything about the app or running your tradie business!" }
+    { role: 'assistant', content: "👋 G'day! I'm Tradie SitePilot AI. Ask me anything about the app or running your tradie business!" }
   ])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -77,7 +77,7 @@ export default function AIAssistant() {
   }
 
   const quickActions = [
-    { label: 'How to create a quote?', action: 'How do I create a new quote in Tradios?' },
+    { label: 'How to create a quote?', action: 'How do I create a new quote in Tradie SitePilot?' },
     { label: 'Track expenses', action: 'How do I track expenses and GST?' },
     { label: 'Create invoice', action: 'How do I create an invoice from a quote?' },
     { label: 'Help with GST', action: 'How does GST work for Australian tradies?' },
@@ -103,7 +103,7 @@ export default function AIAssistant() {
               <Bot className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <div className="text-sm font-semibold text-foreground">Tradios AI</div>
+              <div className="text-sm font-semibold text-foreground">Tradie SitePilot AI</div>
               <div className="text-xs text-muted">Ask me anything about the app</div>
             </div>
             <button onClick={() => setOpen(false)} className="text-muted hover:text-foreground">

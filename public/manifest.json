@@ -1,6 +1,6 @@
 {
-  "name": "Tradios",
-  "short_name": "Tradios",
+  "name": "Tradie SitePilot",
+  "short_name": "SitePilot",
   "description": "La app para tradies Australianos",
   "start_url": "/dashboard",
   "display": "standalone",

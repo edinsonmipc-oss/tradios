@@ -22,7 +22,7 @@ const I18nContext = createContext<I18nContextType>({
   t: (key: string, fallback?: string) => fallback || key,
 })
 
-const STORAGE_KEY = 'tradios-locale'
+const STORAGE_KEY = 'sitepilot-locale'
 
 function getNestedValue(obj: TranslationValue, path: string[]): string | undefined {
   let current: TranslationValue = obj

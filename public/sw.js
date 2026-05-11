@@ -1,5 +1,5 @@
-// Tradios Service Worker - Static assets only (no HTML caching to avoid auth issues)
-const CACHE_NAME = 'tradeos-static-v1'
+// Tradie SitePilot Service Worker - Static assets only (no HTML caching to avoid auth issues)
+const CACHE_NAME = 'sitepilot-static-v1'
 
 // Only cache static assets, NEVER HTML pages (to avoid auth/session issues)
 const PRECACHE_ASSETS = [

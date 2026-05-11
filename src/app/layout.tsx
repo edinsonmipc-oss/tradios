@@ -6,12 +6,12 @@ import { Toaster } from 'react-hot-toast'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Tradios - Gestión para Tradies',
+  title: 'Tradie SitePilot - Gestión para Tradies',
   description: 'La app todo-en-uno para tradespeople Australianos. Cotizaciones, visitas, clientes y más.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
-    title: 'Tradios',
+    title: 'Tradie SitePilot',
     statusBarStyle: 'black-translucent',
   },
   icons: {
@@ -40,7 +40,7 @@ export default function RootLayout({
       <head>
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Tradios" />
+        <meta name="apple-mobile-web-app-title" content="Tradie SitePilot" />
         <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512x512.png" />
