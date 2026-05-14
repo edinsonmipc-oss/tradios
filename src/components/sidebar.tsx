@@ -28,6 +28,7 @@ import {
   Search,
   Home,
   ClipboardList,
+  Sparkles,
 } from 'lucide-react'
 
 const navSections = [
@@ -44,6 +45,7 @@ const navSections = [
     items: [
       { href: '/jobs', label: 'Jobs', icon: Briefcase },
       { href: '/quotes', label: 'Quotes', icon: FileText },
+  { href: '/quote-builder', label: 'Quote Maker', icon: Sparkles },
       { href: '/invoices', label: 'Invoices', icon: ClipboardList },
       { href: '/calendar', label: 'Calendar', icon: CalendarDays },
     ],
